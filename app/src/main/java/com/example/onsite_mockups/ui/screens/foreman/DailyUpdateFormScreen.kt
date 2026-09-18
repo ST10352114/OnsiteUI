@@ -44,12 +44,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import com.example.onsite_mockups.ui.viewmodels.ForemanViewModel
+import androidx.compose.runtime.collectAsState
+
 @Composable
 fun DailyUpdateFormScreen(
+    foremanViewModel: ForemanViewModel,
     onBackClick: () -> Unit,
     onSubmitSuccess: () -> Unit
 ) {
     var headcount by remember { mutableIntStateOf(12) }
+    val siteByState by foremanViewModel.selectedSite.collectAsState()
     val staffList = remember { mutableStateListOf("S. Dlamini", "M. Khumalo") }
 
     val powerTools = remember {
@@ -102,7 +107,7 @@ fun DailyUpdateFormScreen(
                         color = Color(0xFF1A1D20)
                     )
                     Text(
-                        text = "Ridgeview Estate — Block C · Today",
+                        text = "${siteByState?.name ?: "Ridgeview Estate — Block C"} · Today",
                         fontSize = 12.sp,
                         color = Color(0xFF6C757D)
                     )
@@ -332,7 +337,18 @@ fun DailyUpdateFormScreen(
                     .padding(20.dp)
             ) {
                 Button(
-                    onClick = onSubmitSuccess,
+                    onClick = {
+                        val names = staffList.joinToString(", ")
+                        val selectedTools = powerTools.filter { it.selected }.joinToString(", ") { it.name }
+                        val selectedPlant = plantMachinery.filter { it.selected }.joinToString(", ") { it.name }
+                        foremanViewModel.submitDailyUpdate(
+                            headcount = headcount,
+                            staffNames = names,
+                            powerTools = selectedTools,
+                            plantMachines = selectedPlant,
+                            onSubmitDone = onSubmitSuccess
+                        )
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),

@@ -45,14 +45,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import com.example.onsite_mockups.ui.viewmodels.AdminViewModel
+import androidx.compose.runtime.collectAsState
+
 @Composable
 fun SitesAndCrewScreen(
+    adminViewModel: AdminViewModel,
     onNavigateDashboard: () -> Unit,
     onNavigateAlerts: () -> Unit = {},
     onNavigateProfile: () -> Unit = {}
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) } // 0 = Sites (14), 1 = Foremen (6)
+    var selectedTab by remember { mutableIntStateOf(0) } // 0 = Sites, 1 = Foremen
     var navTab by remember { mutableIntStateOf(1) } // Sites & Crew selected in bottom bar
+    val sites by adminViewModel.sites.collectAsState()
+    val foremen by adminViewModel.foremen.collectAsState()
 
     Scaffold(
         containerColor = Color(0xFFF9F9FB),
@@ -160,7 +166,7 @@ fun SitesAndCrewScreen(
                         modifier = Modifier.padding(4.dp),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        // Sites (14) Tab
+                        // Sites Tab
                         Surface(
                             modifier = Modifier
                                 .weight(1f)
@@ -171,7 +177,7 @@ fun SitesAndCrewScreen(
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Text(
-                                    text = "Sites (14)",
+                                    text = "Sites (${sites.size})",
                                     fontSize = 14.sp,
                                     fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Medium,
                                     color = if (selectedTab == 0) Color(0xFF1A1D20) else Color(0xFF6C757D)
@@ -179,7 +185,7 @@ fun SitesAndCrewScreen(
                             }
                         }
 
-                        // Foremen (6) Tab
+                        // Foremen Tab
                         Surface(
                             modifier = Modifier
                                 .weight(1f)
@@ -190,7 +196,7 @@ fun SitesAndCrewScreen(
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Text(
-                                    text = "Foremen (6)",
+                                    text = "Foremen (${foremen.size})",
                                     fontSize = 14.sp,
                                     fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Medium,
                                     color = if (selectedTab == 1) Color(0xFF1A1D20) else Color(0xFF6C757D)
@@ -202,42 +208,28 @@ fun SitesAndCrewScreen(
             }
 
             if (selectedTab == 0) {
-                // Sites List
-                item {
+                // Dynamic Sites List
+                items(sites.size) { index ->
+                    val site = sites[index]
                     SiteManagementCard(
-                        title = "Ridgeview Estate \u2014 Block C",
-                        subtitle = "Foreman: T. Mokoena",
-                        statusText = "Active",
-                        isActive = true
-                    )
-                }
-                item {
-                    SiteManagementCard(
-                        title = "Silverwood Complex",
-                        subtitle = "Foreman: A. Naidoo",
-                        statusText = "Active",
-                        isActive = true
-                    )
-                }
-                item {
-                    SiteManagementCard(
-                        title = "Kloofview Access Road",
-                        subtitle = "Completed 2 weeks ago",
-                        statusText = "Closed",
-                        isActive = false
+                        title = site.name,
+                        subtitle = "Address: ${site.address}",
+                        statusText = if (site.isActive) "Active" else "Closed",
+                        isActive = site.isActive
                     )
                 }
 
                 item {
                     Spacer(modifier = Modifier.height(4.dp))
-                    // + Add new site button
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(52.dp)
                             .clip(RoundedCornerShape(16.dp))
                             .border(1.dp, Color(0xFFCED4DA), RoundedCornerShape(16.dp))
-                            .clickable { },
+                            .clickable {
+                                adminViewModel.addSite("New Extension Site", "Port Elizabeth")
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         Row(
@@ -261,39 +253,27 @@ fun SitesAndCrewScreen(
                     }
                 }
             } else {
-                // Foremen List
-                item {
+                // Dynamic Foremen List
+                items(foremen.size) { index ->
+                    val foreman = foremen[index]
                     ForemanManagementCard(
-                        name = "Thabo Mokoena",
-                        detail = "3 sites assigned",
-                        statusText = "Active"
-                    )
-                }
-                item {
-                    ForemanManagementCard(
-                        name = "A. Naidoo",
-                        detail = "2 sites assigned",
-                        statusText = "Active"
-                    )
-                }
-                item {
-                    ForemanManagementCard(
-                        name = "S. Zulu",
-                        detail = "2 sites assigned",
-                        statusText = "Active"
+                        name = foreman.fullName,
+                        detail = foreman.email,
+                        statusText = if (foreman.isActive) "Active" else "Inactive"
                     )
                 }
 
                 item {
                     Spacer(modifier = Modifier.height(4.dp))
-                    // + Add new foreman button
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(52.dp)
                             .clip(RoundedCornerShape(16.dp))
                             .border(1.dp, Color(0xFFCED4DA), RoundedCornerShape(16.dp))
-                            .clickable { },
+                            .clickable {
+                                adminViewModel.addForeman("New Foreman Account", "new_foreman@onsite.com")
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         Row(

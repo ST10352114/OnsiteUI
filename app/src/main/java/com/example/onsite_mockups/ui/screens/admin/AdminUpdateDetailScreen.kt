@@ -38,12 +38,18 @@ import androidx.compose.ui.unit.sp
 import com.example.onsite_mockups.ui.screens.foreman.Chip
 import com.example.onsite_mockups.ui.screens.foreman.FormSectionTitle
 
+import com.example.onsite_mockups.ui.viewmodels.AdminViewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+
 @Composable
 fun AdminUpdateDetailScreen(
+    adminViewModel: AdminViewModel,
     onBackClick: () -> Unit,
     onExportClick: () -> Unit = {},
     onFlagForReviewClick: () -> Unit = {}
 ) {
+    val update by adminViewModel.selectedUpdate.collectAsState()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -70,13 +76,13 @@ fun AdminUpdateDetailScreen(
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
                     Text(
-                        text = "Ridgeview Estate",
+                        text = if (update != null) "Update Details" else "Ridgeview Estate",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF1A1D20)
                     )
                     Text(
-                        text = "Block C · Submitted 07:52 today",
+                        text = "Submitted ${update?.updateDate ?: "today"}",
                         fontSize = 12.sp,
                         color = Color(0xFF6C757D)
                     )
@@ -161,16 +167,17 @@ fun AdminUpdateDetailScreen(
             }
 
             item {
-                // Section: STAFF ON SITE — 12
-                FormSectionTitle(title = "STAFF ON SITE — 12")
+                // Section: STAFF ON SITE
+                FormSectionTitle(title = "STAFF ON SITE — ${update?.actualLabor ?: 12}")
                 Spacer(modifier = Modifier.height(8.dp))
 
                 com.example.onsite_mockups.ui.screens.foreman.FlowRow(
                     runSpacing = 8.dp
                 ) {
-                    Chip(text = "S. Dlamini", selected = true, onClick = {})
-                    Chip(text = "M. Khumalo", selected = true, onClick = {})
-                    Chip(text = "+ 10 more", selected = false, onClick = {})
+                    val staff = update?.staffNames?.split(",")?.map { it.trim() } ?: listOf("S. Dlamini", "M. Khumalo")
+                    staff.forEach { name ->
+                        if (name.isNotEmpty()) Chip(text = name, selected = true, onClick = {})
+                    }
                 }
             }
 
@@ -182,8 +189,10 @@ fun AdminUpdateDetailScreen(
                 com.example.onsite_mockups.ui.screens.foreman.FlowRow(
                     runSpacing = 8.dp
                 ) {
-                    Chip(text = "Angle grinder", selected = true, onClick = {})
-                    Chip(text = "Drill", selected = true, onClick = {})
+                    val tools = update?.powerTools?.split(",")?.map { it.trim() } ?: listOf("Angle grinder", "Drill")
+                    tools.forEach { tool ->
+                        if (tool.isNotEmpty()) Chip(text = tool, selected = true, onClick = {})
+                    }
                 }
             }
 
@@ -195,8 +204,10 @@ fun AdminUpdateDetailScreen(
                 com.example.onsite_mockups.ui.screens.foreman.FlowRow(
                     runSpacing = 8.dp
                 ) {
-                    Chip(text = "Excavator", selected = true, onClick = {})
-                    Chip(text = "Concrete mixer", selected = true, onClick = {})
+                    val plant = update?.plantMachines?.split(",")?.map { it.trim() } ?: listOf("Excavator", "Concrete mixer")
+                    plant.forEach { machine ->
+                        if (machine.isNotEmpty()) Chip(text = machine, selected = true, onClick = {})
+                    }
                 }
             }
 

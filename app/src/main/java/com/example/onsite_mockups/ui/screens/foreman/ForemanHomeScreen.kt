@@ -44,8 +44,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import com.example.onsite_mockups.ui.viewmodels.ForemanViewModel
+import androidx.compose.runtime.collectAsState
+
 @Composable
 fun ForemanHomeScreen(
+    foremanViewModel: ForemanViewModel,
     onSiteClick: (String) -> Unit,
     onAchievementsClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
@@ -53,6 +57,8 @@ fun ForemanHomeScreen(
     onNotificationClick: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
+    val sites by foremanViewModel.sites.collectAsState()
+    val updates by foremanViewModel.updates.collectAsState()
 
     Scaffold(
         containerColor = Color(0xFFF9F9FB),
@@ -214,7 +220,7 @@ fun ForemanHomeScreen(
                             verticalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = "3",
+                                text = sites.size.toString(),
                                 fontSize = 24.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF1A1D20)
@@ -248,7 +254,7 @@ fun ForemanHomeScreen(
                             verticalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = "1",
+                                text = updates.size.toString(),
                                 fontSize = 24.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF2E7D32)
@@ -291,39 +297,17 @@ fun ForemanHomeScreen(
                 }
             }
 
-            // Site 1: Ridgeview Estate — Block C
-            item {
+            // Dynamic Sites List
+            items(sites.size) { index ->
+                val site = sites[index]
+                val isSubmitted = updates.any { it.siteId == site.id }
                 SiteCard(
-                    title = "Ridgeview Estate \u2014 Block C",
-                    address = "14 Marlow Road, Umhlanga",
-                    statusText = "Needs update",
-                    isSubmitted = false,
-                    footerText = "Last update: Yesterday",
-                    onClick = { onSiteClick("ridgeview") }
-                )
-            }
-
-            // Site 2: Palm Grove Retail Park
-            item {
-                SiteCard(
-                    title = "Palm Grove Retail Park",
-                    address = "88 Chartwell Dr, Umhlanga",
-                    statusText = "Needs update",
-                    isSubmitted = false,
-                    footerText = "Last update: 2 days ago",
-                    onClick = { onSiteClick("palmgrove") }
-                )
-            }
-
-            // Site 3: Northgate Office Park
-            item {
-                SiteCard(
-                    title = "Northgate Office Park",
-                    address = "6 Sunset Ave, Durban North",
-                    statusText = "Submitted",
-                    isSubmitted = true,
-                    footerText = "Submitted 07:52 today",
-                    onClick = { onSiteClick("northgate") }
+                    title = site.name,
+                    address = site.address,
+                    statusText = if (isSubmitted) "Submitted" else "Needs update",
+                    isSubmitted = isSubmitted,
+                    footerText = if (isSubmitted) "Submitted today" else "Last update: Yesterday",
+                    onClick = { onSiteClick(site.id) }
                 )
             }
 

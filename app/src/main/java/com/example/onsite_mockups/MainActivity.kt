@@ -32,6 +32,9 @@ import com.example.onsite_mockups.ui.screens.shared.LoginScreen
 import com.example.onsite_mockups.ui.screens.shared.SplashScreen
 import com.example.onsite_mockups.ui.theme.OnSiteMockupsTheme
 
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.onsite_mockups.ui.viewmodels.*
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,6 +42,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             OnSiteMockupsTheme {
                 val navController = rememberNavController()
+                val authViewModel: AuthViewModel = viewModel()
+                val foremanViewModel: ForemanViewModel = viewModel()
+                val adminViewModel: AdminViewModel = viewModel()
+
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     NavHost(
                         navController = navController,
@@ -56,10 +63,13 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(Screen.Login.route) {
                             LoginScreen(
+                                authViewModel = authViewModel,
                                 onLoginSuccess = { username ->
                                     val destination = if (username.trim().lowercase() == "admin") {
+                                        adminViewModel.loadAdminData()
                                         Screen.AdminDashboard.route
                                     } else {
+                                        foremanViewModel.loadForemanData()
                                         Screen.ForemanHome.route
                                     }
                                     navController.navigate(destination) {
@@ -67,20 +77,28 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 onLoginAsForeman = {
-                                    navController.navigate(Screen.ForemanHome.route) {
-                                        popUpTo(Screen.Login.route) { inclusive = true }
+                                    authViewModel.login("Thabo") {
+                                        foremanViewModel.loadForemanData()
+                                        navController.navigate(Screen.ForemanHome.route) {
+                                            popUpTo(Screen.Login.route) { inclusive = true }
+                                        }
                                     }
                                 },
                                 onLoginAsAdmin = {
-                                    navController.navigate(Screen.AdminDashboard.route) {
-                                        popUpTo(Screen.Login.route) { inclusive = true }
+                                    authViewModel.login("Admin") {
+                                        adminViewModel.loadAdminData()
+                                        navController.navigate(Screen.AdminDashboard.route) {
+                                            popUpTo(Screen.Login.route) { inclusive = true }
+                                        }
                                     }
                                 }
                             )
                         }
                         composable(Screen.AdminDashboard.route) {
                             AdminDashboardScreen(
-                                onUpdateClick = { _ ->
+                                adminViewModel = adminViewModel,
+                                onUpdateClick = { updateId ->
+                                    adminViewModel.selectUpdate(updateId)
                                     navController.navigate(Screen.AdminUpdateDetail.route)
                                 },
                                 onSitesCrewClick = {
@@ -93,6 +111,7 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(Screen.SitesAndCrew.route) {
                             SitesAndCrewScreen(
+                                adminViewModel = adminViewModel,
                                 onNavigateDashboard = {
                                     navController.navigate(Screen.AdminDashboard.route) {
                                         popUpTo(Screen.AdminDashboard.route) { inclusive = true }
@@ -116,14 +135,17 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 onLogout = {
-                                    navController.navigate(Screen.Login.route) {
-                                        popUpTo(Screen.AdminDashboard.route) { inclusive = true }
+                                    authViewModel.logout {
+                                        navController.navigate(Screen.Login.route) {
+                                            popUpTo(Screen.AdminDashboard.route) { inclusive = true }
+                                        }
                                     }
                                 }
                             )
                         }
                         composable(Screen.AdminUpdateDetail.route) {
                             AdminUpdateDetailScreen(
+                                adminViewModel = adminViewModel,
                                 onBackClick = { navController.popBackStack() },
                                 onExportClick = {},
                                 onFlagForReviewClick = { navController.popBackStack() }
@@ -131,7 +153,9 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(Screen.ForemanHome.route) {
                             ForemanHomeScreen(
+                                foremanViewModel = foremanViewModel,
                                 onSiteClick = { siteId ->
+                                    foremanViewModel.selectSite(siteId)
                                     if (siteId == "palmgrove") {
                                         navController.navigate(Screen.UpdateOffline.route)
                                     } else {
@@ -179,6 +203,7 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(Screen.DailyUpdateForm.route) {
                             DailyUpdateFormScreen(
+                                foremanViewModel = foremanViewModel,
                                 onBackClick = { navController.popBackStack() },
                                 onSubmitSuccess = {
                                     navController.navigate(Screen.UpdateSynced.route) {

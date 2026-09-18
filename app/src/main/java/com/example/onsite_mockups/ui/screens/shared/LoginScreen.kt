@@ -39,8 +39,12 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import com.example.onsite_mockups.ui.viewmodels.AuthViewModel
+import androidx.compose.runtime.collectAsState
+
 @Composable
 fun LoginScreen(
+    authViewModel: AuthViewModel,
     onLoginSuccess: (String) -> Unit,
     onLoginAsForeman: () -> Unit,
     onLoginAsAdmin: () -> Unit,
@@ -49,6 +53,7 @@ fun LoginScreen(
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    val loginState by authViewModel.loginState.collectAsState()
 
     Column(
         modifier = Modifier
@@ -231,7 +236,7 @@ fun LoginScreen(
 
             // Log In Button
             Button(
-                onClick = { onLoginSuccess(username) },
+                onClick = { authViewModel.login(username) { profile -> onLoginSuccess(profile.fullName) } },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),

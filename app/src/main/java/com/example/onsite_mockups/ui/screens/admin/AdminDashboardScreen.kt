@@ -46,8 +46,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import com.example.onsite_mockups.ui.viewmodels.AdminViewModel
+import androidx.compose.runtime.collectAsState
+
 @Composable
 fun AdminDashboardScreen(
+    adminViewModel: AdminViewModel,
     onNotificationClick: () -> Unit = {},
     onExportClick: () -> Unit = {},
     onUpdateClick: (String) -> Unit = {},
@@ -56,6 +60,8 @@ fun AdminDashboardScreen(
     onProfileClick: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableIntStateOf(0) } // Dashboard tab selected
+    val sites by adminViewModel.sites.collectAsState()
+    val updates by adminViewModel.updates.collectAsState()
 
     Scaffold(
         containerColor = Color(0xFFF9F9FB),
@@ -217,7 +223,7 @@ fun AdminDashboardScreen(
                             verticalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = "14",
+                                text = sites.size.toString(),
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF1A1D20)
@@ -232,7 +238,7 @@ fun AdminDashboardScreen(
                         }
                     }
 
-                    // Tile 2: Updated today (9)
+                    // Tile 2: Updated today
                     Card(
                         modifier = Modifier
                             .weight(1f)
@@ -249,7 +255,7 @@ fun AdminDashboardScreen(
                             verticalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = "9",
+                                text = updates.size.toString(),
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF2E7D32)
@@ -264,7 +270,7 @@ fun AdminDashboardScreen(
                         }
                     }
 
-                    // Tile 3: Pending (5)
+                    // Tile 3: Pending
                     Card(
                         modifier = Modifier
                             .weight(1f)
@@ -281,7 +287,7 @@ fun AdminDashboardScreen(
                             verticalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = "5",
+                                text = (sites.size - updates.size).coerceAtLeast(0).toString(),
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFFE65100)
@@ -364,58 +370,17 @@ fun AdminDashboardScreen(
                 )
             }
 
-            // Update 1: Ridgeview Estate — Block C
-            item {
+            // Dynamic Updates List
+            items(sites.size) { index ->
+                val site = sites[index]
+                val update = updates.find { it.siteId == site.id }
+                val isDone = update != null
                 AdminUpdateCard(
-                    title = "Ridgeview Estate \u2014 Block C",
-                    subtitle = "T. Mokoena · 07:52",
-                    statusText = "Done",
-                    isDone = true,
-                    onClick = { onUpdateClick("ridgeview") }
-                )
-            }
-
-            // Update 2: Northgate Office Park
-            item {
-                AdminUpdateCard(
-                    title = "Northgate Office Park",
-                    subtitle = "T. Mokoena · 08:10",
-                    statusText = "Done",
-                    isDone = true,
-                    onClick = { onUpdateClick("northgate") }
-                )
-            }
-
-            // Update 3: Palm Grove Retail Park
-            item {
-                AdminUpdateCard(
-                    title = "Palm Grove Retail Park",
-                    subtitle = "T. Mokoena · —",
-                    statusText = "Pending",
-                    isDone = false,
-                    onClick = { onUpdateClick("palmgrove") }
-                )
-            }
-
-            // Update 4: Silverwood Complex
-            item {
-                AdminUpdateCard(
-                    title = "Silverwood Complex",
-                    subtitle = "A. Naidoo · 07:40",
-                    statusText = "Done",
-                    isDone = true,
-                    onClick = { onUpdateClick("silverwood") }
-                )
-            }
-
-            // Update 5: Harbour View Towers
-            item {
-                AdminUpdateCard(
-                    title = "Harbour View Towers",
-                    subtitle = "S. Zulu · —",
-                    statusText = "Pending",
-                    isDone = false,
-                    onClick = { onUpdateClick("harbourview") }
+                    title = site.name,
+                    subtitle = if (isDone) "T. Mokoena · ${update.updateDate}" else "Pending · —",
+                    statusText = if (isDone) "Done" else "Pending",
+                    isDone = isDone,
+                    onClick = { onUpdateClick(site.id) }
                 )
             }
 
