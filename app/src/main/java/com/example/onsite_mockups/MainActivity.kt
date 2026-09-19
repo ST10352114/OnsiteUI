@@ -64,8 +64,9 @@ class MainActivity : ComponentActivity() {
                         composable(Screen.Login.route) {
                             LoginScreen(
                                 authViewModel = authViewModel,
-                                onLoginSuccess = { username ->
-                                    val destination = if (username.trim().lowercase() == "admin") {
+                                onLoginSuccess = { fullName ->
+                                    val profile = authViewModel.currentProfile.value
+                                    val destination = if (profile?.role == "admin") {
                                         adminViewModel.loadAdminData()
                                         Screen.AdminDashboard.route
                                     } else {
@@ -74,22 +75,6 @@ class MainActivity : ComponentActivity() {
                                     }
                                     navController.navigate(destination) {
                                         popUpTo(Screen.Login.route) { inclusive = true }
-                                    }
-                                },
-                                onLoginAsForeman = {
-                                    authViewModel.login("Thabo") {
-                                        foremanViewModel.loadForemanData()
-                                        navController.navigate(Screen.ForemanHome.route) {
-                                            popUpTo(Screen.Login.route) { inclusive = true }
-                                        }
-                                    }
-                                },
-                                onLoginAsAdmin = {
-                                    authViewModel.login("Admin") {
-                                        adminViewModel.loadAdminData()
-                                        navController.navigate(Screen.AdminDashboard.route) {
-                                            popUpTo(Screen.Login.route) { inclusive = true }
-                                        }
                                     }
                                 }
                             )

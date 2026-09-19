@@ -1,42 +1,47 @@
 package com.example.onsite_mockups.data.models
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class Profile(
-    @SerializedName("id") val id: String,
-    @SerializedName("fullName") val fullName: String,
-    @SerializedName("role") val role: String, // "admin", "foreman", "truck_driver"
-    @SerializedName("email") val email: String,
-    @SerializedName("phone") val phone: String?,
-    @SerializedName("isActive") val isActive: Boolean,
-    @SerializedName("password") val password: String? = null
+    @SerialName("id") val id: String,
+    @SerialName("fullName") val fullName: String,
+    @SerialName("role") val role: String, // "admin", "foreman", "truck_driver"
+    @SerialName("email") val email: String,
+    @SerialName("phone") val phone: String?,
+    @SerialName("isActive") val isActive: Boolean,
+    @SerialName("password") val password: String? = null
 )
 
+@Serializable
 data class Site(
-    @SerializedName("id") val id: String,
-    @SerializedName("name") val name: String,
-    @SerializedName("address") val address: String,
-    @SerializedName("isActive") val isActive: Boolean
+    @SerialName("id") val id: String,
+    @SerialName("name") val name: String,
+    @SerialName("address") val address: String,
+    @SerialName("isActive") val isActive: Boolean
 )
 
+@Serializable
 data class SiteUpdate(
-    @SerializedName("id") val id: String,
-    @SerializedName("siteId") val siteId: String,
-    @SerializedName("foremanId") val foremanId: String,
-    @SerializedName("updateDate") val updateDate: String, // YYYY-MM-DD
-    @SerializedName("forecastedLabor") val forecastedLabor: Int,
-    @SerializedName("bricklayers") val bricklayers: Int,
-    @SerializedName("plasterers") val plasterers: Int,
-    @SerializedName("pavers") val pavers: Int,
-    @SerializedName("actualLabor") val actualLabor: Int,
-    @SerializedName("staffNames") val staffNames: String?,
-    @SerializedName("powerTools") val powerTools: String?,
-    @SerializedName("plantMachines") val plantMachines: String?,
-    @SerializedName("notes") val notes: String?,
-    @SerializedName("createdAt") val createdAt: String? = null
+    @SerialName("id") val id: String,
+    @SerialName("siteId") val siteId: String,
+    @SerialName("foremanId") val foremanId: String,
+    @SerialName("updateDate") val updateDate: String, // YYYY-MM-DD
+    @SerialName("forecastedLabor") val forecastedLabor: Int,
+    @SerialName("bricklayers") val bricklayers: Int,
+    @SerialName("plasterers") val plasterers: Int,
+    @SerialName("pavers") val pavers: Int,
+    @SerialName("actualLabor") val actualLabor: Int,
+    @SerialName("staffNames") val staffNames: String?,
+    @SerialName("powerTools") val powerTools: String?,
+    @SerialName("plantMachines") val plantMachines: String?,
+    @SerialName("notes") val notes: String?,
+    @SerialName("createdAt") val createdAt: String? = null
 )
 
+@Serializable
 data class AssignmentRequest(
-    @SerializedName("siteId") val siteId: String,
-    @SerializedName("foremanId") val foremanId: String
+    @SerialName("siteId") val siteId: String,
+    @SerialName("foremanId") val foremanId: String
 )

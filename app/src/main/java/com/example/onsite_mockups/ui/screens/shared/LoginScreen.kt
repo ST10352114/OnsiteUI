@@ -1,257 +1,259 @@
 package com.example.onsite_mockups.ui.screens.shared
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AdminPanelSettings
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import com.example.onsite_mockups.ui.viewmodels.AuthViewModel
+import com.example.onsite_mockups.ui.viewmodels.LoginState
 import androidx.compose.runtime.collectAsState
 
 @Composable
 fun LoginScreen(
     authViewModel: AuthViewModel,
     onLoginSuccess: (String) -> Unit,
-    onLoginAsForeman: () -> Unit,
-    onLoginAsAdmin: () -> Unit,
     onForgotPasswordClick: () -> Unit = {}
 ) {
-    var username by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     val loginState by authViewModel.loginState.collectAsState()
 
-    Column(
+    val isLoading = loginState is LoginState.Loading
+    val errorMessage = (loginState as? LoginState.Error)?.message
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF9F9FB))
-            .padding(24.dp),
-        verticalArrangement = Arrangement.SpaceBetween
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(Color(0xFF1A1D20), Color(0xFF101214))
+                )
+            )
     ) {
+        // Decorative background element (Industrial accent)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(240.dp)
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(Color(0xFFFFC107).copy(alpha = 0.1f), Color.Transparent)
+                    )
+                )
+        )
+
         Column(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(28.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(60.dp))
 
-            // Top-left yellow home icon box
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFFFFC107)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Home,
-                    contentDescription = "Home",
-                    tint = Color(0xFF14171A),
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Text(
-                text = "Welcome back",
-                fontSize = 26.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF1A1D20)
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Text(
-                text = "Log in to view your sites and submit updates",
-                fontSize = 14.sp,
-                color = Color(0xFF6C757D)
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Quick Role Selection Buttons (Foreman & Admin)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Button(
-                    onClick = onLoginAsForeman,
+            // Brand / Logo Area
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
                     modifier = Modifier
-                        .weight(1f)
-                        .height(44.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF343A40))
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color(0xFFFFC107)),
+                    contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Foreman",
-                        tint = Color(0xFFFFC107),
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "Foreman",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        imageVector = Icons.Default.Construction,
+                        contentDescription = "OnSite Logo",
+                        tint = Color(0xFF1A1D20),
+                        modifier = Modifier.size(32.dp)
                     )
                 }
-
-                Button(
-                    onClick = onLoginAsAdmin,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(44.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1A1D20))
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.AdminPanelSettings,
-                        contentDescription = "Admin",
-                        tint = Color(0xFFFFC107),
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
+                Spacer(modifier = Modifier.width(16.dp))
+                Column {
                     Text(
-                        text = "Admin",
-                        fontSize = 13.sp,
+                        text = "ONSITE",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
+                        letterSpacing = 2.sp
+                    )
+                    Text(
+                        text = "MOCKUPS PRO",
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = Color(0xFFFFC107),
+                        letterSpacing = 1.sp
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(48.dp))
 
-            // USERNAME Field
-            Text(
-                text = "USERNAME",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF6C757D),
-                letterSpacing = 1.sp
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
+            // Main Content Card
+            Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFFFFC107),
-                    unfocusedBorderColor = Color(0xFFE0E0E0),
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White
-                )
-            )
+                shape = RoundedCornerShape(24.dp),
+                color = Color(0xFF262A2E),
+                tonalElevation = 8.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp)
+                ) {
+                    Text(
+                        text = "Welcome Back",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        text = "Sign in to manage your construction projects",
+                        fontSize = 14.sp,
+                        color = Color(0xFF9BA3AF),
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
 
-            Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
 
-            // PASSWORD Field
-            Text(
-                text = "PASSWORD",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF6C757D),
-                letterSpacing = 1.sp
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                singleLine = true,
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    TextButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Text(
-                            text = if (passwordVisible) "HIDE" else "SHOW",
-                            color = Color(0xFF6C757D),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                    // Error Message
+                    AnimatedVisibility(visible = errorMessage != null) {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 16.dp),
+                            color = Color(0xFFFF5252).copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(8.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFF5252).copy(alpha = 0.5f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Default.Error, contentDescription = null, tint = Color(0xFFFF5252), modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(text = errorMessage ?: "", color = Color(0xFFFF5252), fontSize = 13.sp)
+                            }
+                        }
                     }
-                },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFFFFC107),
-                    unfocusedBorderColor = Color(0xFFE0E0E0),
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White
-                )
-            )
 
-            Spacer(modifier = Modifier.height(4.dp))
-
-            // Forgot password?
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                TextButton(onClick = onForgotPasswordClick) {
+                    // Email Field
                     Text(
-                        text = "Forgot password?",
-                        color = Color(0xFFE65100),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold
+                        text = "EMAIL ADDRESS",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color(0xFFFFC107),
+                        letterSpacing = 1.sp
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("e.g. thabo@onsite.com", color = Color(0xFF5A626C)) },
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true,
+                        leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = Color(0xFF9BA3AF)) },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFFFFC107),
+                            unfocusedBorderColor = Color(0xFF3D444B),
+                            focusedContainerColor = Color(0xFF1A1D20),
+                            unfocusedContainerColor = Color(0xFF1A1D20),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // Password Field
+                    Text(
+                        text = "PASSWORD",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color(0xFFFFC107),
+                        letterSpacing = 1.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true,
+                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = Color(0xFF9BA3AF)) },
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(
+                                    imageVector = if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                    contentDescription = null,
+                                    tint = Color(0xFF9BA3AF)
+                                )
+                            }
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFFFFC107),
+                            unfocusedBorderColor = Color(0xFF3D444B),
+                            focusedContainerColor = Color(0xFF1A1D20),
+                            unfocusedContainerColor = Color(0xFF1A1D20),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White
+                        )
+                    )
+
+                    TextButton(
+                        onClick = onForgotPasswordClick,
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Text("Forgot Password?", color = Color(0xFF9BA3AF), fontSize = 13.sp)
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Login Button
+                    Button(
+                        onClick = { 
+                            if (email.isNotBlank() && password.isNotBlank()) {
+                                authViewModel.login(email, password) { profile -> 
+                                    onLoginSuccess(profile.fullName) 
+                                }
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFFFC107),
+                            contentColor = Color(0xFF1A1D20)
+                        ),
+                        enabled = !isLoading && email.isNotBlank() && password.isNotBlank()
+                    ) {
+                        if (isLoading) {
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color(0xFF1A1D20), strokeWidth = 3.dp)
+                        } else {
+                            Text("SIGN IN", fontSize = 16.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+                        }
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Log In Button
-            Button(
-                onClick = { authViewModel.login(username) { profile -> onLoginSuccess(profile.fullName) } },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFFF6D00)
-                )
-            ) {
-                Text(
-                    text = "Log In",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            }
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
