@@ -52,14 +52,19 @@ import com.example.onsite_mockups.ui.screens.foreman.SettingsNavigationItem
 import com.example.onsite_mockups.ui.screens.foreman.SettingsSectionTitle
 import com.example.onsite_mockups.ui.screens.foreman.SettingsSwitchItem
 
+import androidx.compose.runtime.collectAsState
+import com.example.onsite_mockups.ui.viewmodels.AuthViewModel
+
 @Composable
 fun AdminSettingsScreen(
+    authViewModel: AuthViewModel,
     onNavigateDashboard: () -> Unit,
     onNavigateSitesCrew: () -> Unit,
     onNavigateAlerts: () -> Unit = {},
     onLogout: () -> Unit
 ) {
     var navTab by remember { mutableIntStateOf(3) } // Profile selected in bottom bar
+    val currentProfile by authViewModel.currentProfile.collectAsState()
 
     var pushNotificationsEnabled by remember { mutableStateOf(true) }
     var biometricLoginEnabled by remember { mutableStateOf(true) }
@@ -175,7 +180,7 @@ fun AdminSettingsScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "AZ",
+                                text = currentProfile?.fullName?.take(2)?.uppercase() ?: "AZ",
                                 color = Color(0xFFFFC107),
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold
@@ -186,14 +191,14 @@ fun AdminSettingsScreen(
 
                         Column {
                             Text(
-                                text = "Aisha Zulu",
+                                text = currentProfile?.fullName ?: "Aisha Zulu",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF1A1D20)
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "Site Administrator",
+                                text = if (currentProfile?.role == "admin") "Site Administrator" else "Foreman",
                                 fontSize = 13.sp,
                                 color = Color(0xFF6C757D)
                             )

@@ -54,14 +54,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import androidx.compose.runtime.collectAsState
+import com.example.onsite_mockups.ui.viewmodels.AuthViewModel
+
 @Composable
 fun SettingsScreen(
+    authViewModel: AuthViewModel,
     onNavigateHome: () -> Unit,
     onNavigateAchievements: () -> Unit,
     onNavigateAlerts: () -> Unit = {},
     onLogout: () -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(3) } // Profile tab selected
+    val currentProfile by authViewModel.currentProfile.collectAsState()
 
     var pushNotificationsEnabled by remember { mutableStateOf(true) }
     var biometricLoginEnabled by remember { mutableStateOf(true) }
@@ -177,7 +182,7 @@ fun SettingsScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "TM",
+                                text = currentProfile?.fullName?.take(2)?.uppercase() ?: "TM",
                                 color = Color(0xFFFFC107),
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold
@@ -188,14 +193,14 @@ fun SettingsScreen(
 
                         Column {
                             Text(
-                                text = "Thabo Mokoena",
+                                text = currentProfile?.fullName ?: "Thabo Mokoena",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF1A1D20)
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "Foreman · 3 sites assigned",
+                                text = if (currentProfile?.role == "foreman") "Foreman · Assigned sites" else "Employee",
                                 fontSize = 13.sp,
                                 color = Color(0xFF6C757D)
                             )

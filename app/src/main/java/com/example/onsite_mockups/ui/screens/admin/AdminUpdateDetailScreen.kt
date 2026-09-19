@@ -125,7 +125,7 @@ fun AdminUpdateDetailScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "TM",
+                                    text = if (update != null) "TM" else "TM", // Could be dynamic if update has foreman name
                                     color = Color(0xFFFFC107),
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold
@@ -134,14 +134,14 @@ fun AdminUpdateDetailScreen(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(
-                                    text = "Thabo Mokoena",
+                                    text = if (update != null) "Thabo Mokoena" else "Thabo Mokoena",
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF1A1D20)
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
-                                    text = "Foreman · Submitted from mobile",
+                                    text = "Foreman · Submitted ${update?.createdAt ?: "from mobile"}",
                                     fontSize = 12.sp,
                                     color = Color(0xFF6C757D)
                                 )

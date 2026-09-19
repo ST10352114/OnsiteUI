@@ -109,6 +109,7 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(Screen.AdminSettings.route) {
                             AdminSettingsScreen(
+                                authViewModel = authViewModel,
                                 onNavigateDashboard = {
                                     navController.navigate(Screen.AdminDashboard.route) {
                                         popUpTo(Screen.AdminDashboard.route) { inclusive = true }
@@ -169,6 +170,7 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(Screen.Settings.route) {
                             SettingsScreen(
+                                authViewModel = authViewModel,
                                 onNavigateHome = {
                                     navController.navigate(Screen.ForemanHome.route) {
                                         popUpTo(Screen.ForemanHome.route) { inclusive = true }
