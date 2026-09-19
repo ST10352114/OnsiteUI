@@ -24,6 +24,10 @@ class AdminViewModel : ViewModel() {
     private val _selectedUpdate = MutableStateFlow<SiteUpdate?>(null)
     val selectedUpdate: StateFlow<SiteUpdate?> = _selectedUpdate.asStateFlow()
 
+    fun getForemanForUpdate(update: SiteUpdate?): Profile? {
+        return _foremen.value.find { it.id == update?.foremanId }
+    }
+
     fun loadAdminData() {
         viewModelScope.launch {
             _sites.value = OnSiteRepository.getSites()

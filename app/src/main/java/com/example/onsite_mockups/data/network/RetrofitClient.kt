@@ -1,16 +1,25 @@
 package com.example.onsite_mockups.data.network
 
+import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import kotlinx.serialization.json.Json
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
     private const val BASE_URL = "https://onsiteapi-9n82.onrender.com/api/v1/"
     
     private var authToken: String? = null
+
+    private val json = Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+        encodeDefaults = true
+        isLenient = true
+    }
 
     fun setToken(token: String?) {
         authToken = token
@@ -38,7 +47,7 @@ object RetrofitClient {
     private val retrofit = Retrofit.Builder()
         .baseUrl(BASE_URL)
         .client(okHttpClient)
-        .addConverterFactory(GsonConverterFactory.create())
+        .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
         .build()
 
     val apiService: OnSiteApiService = retrofit.create(OnSiteApiService::class.java)

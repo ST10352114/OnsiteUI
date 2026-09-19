@@ -34,6 +34,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -62,6 +64,10 @@ fun AdminDashboardScreen(
     var selectedTab by remember { mutableIntStateOf(0) } // Dashboard tab selected
     val sites by adminViewModel.sites.collectAsState()
     val updates by adminViewModel.updates.collectAsState()
+
+    LaunchedEffect(Unit) {
+        adminViewModel.loadAdminData()
+    }
 
     Scaffold(
         containerColor = Color(0xFFF9F9FB),
@@ -375,12 +381,13 @@ fun AdminDashboardScreen(
                 val site = sites[index]
                 val update = updates.find { it.siteId == site.id }
                 val isDone = update != null
+                val updateForeman = adminViewModel.getForemanForUpdate(update)
                 AdminUpdateCard(
                     title = site.name,
-                    subtitle = if (isDone) "T. Mokoena · ${update.updateDate}" else "Pending · —",
+                    subtitle = if (isDone && update != null) "${updateForeman?.fullName ?: "Foreman"} · ${update.updateDate}" else "Pending · —",
                     statusText = if (isDone) "Done" else "Pending",
                     isDone = isDone,
-                    onClick = { onUpdateClick(site.id) }
+                    onClick = { onUpdateClick(site.id ?: "") }
                 )
             }
 

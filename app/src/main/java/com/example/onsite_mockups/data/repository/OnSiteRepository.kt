@@ -1,10 +1,10 @@
 package com.example.onsite_mockups.data.repository
 
+import android.util.Log
 import com.example.onsite_mockups.data.models.*
 import com.example.onsite_mockups.data.network.RetrofitClient
 import com.example.onsite_mockups.data.network.SupabaseClient
 import io.github.jan.supabase.postgrest.from
-import io.github.jan.supabase.postgrest.query.Columns
 import java.util.UUID
 
 object OnSiteRepository {
@@ -50,45 +50,52 @@ object OnSiteRepository {
             }
             profilesList
         } catch (e: Exception) {
-            android.util.Log.e("OnSiteRepository", "Error fetching profiles: ${e.message}")
+            Log.e("OnSiteRepository", "Error fetching profiles: ${e.message}")
             if (role != null) profilesList.filter { it.role == role } else profilesList
         }
     }
 
     suspend fun addProfile(fullName: String, role: String, email: String): Profile {
-        val newProfile = Profile(UUID.randomUUID().toString(), fullName, role, email, null, true)
-        try {
-            api.createProfile(newProfile)
+        val newProfile = Profile(fullName = fullName, role = role, email = email, phone = null, isActive = true)
+        return try {
+            val response = api.createProfile(newProfile)
+            Log.d("OnSiteRepository", "Successfully added profile: ${response.fullName}")
+            profilesList.add(response)
+            response
         } catch (e: Exception) {
-            android.util.Log.e("OnSiteRepository", "Error adding profile: ${e.message}")
+            Log.e("OnSiteRepository", "Error adding profile: ${e.message}")
+            profilesList.add(newProfile)
+            newProfile
         }
-        profilesList.add(newProfile)
-        return newProfile
     }
 
     suspend fun getSites(): List<Site> {
         return try {
             val res = api.getSites()
+            Log.d("OnSiteRepository", "Fetched ${res.size} sites from API")
             if (res.isNotEmpty()) {
                 sitesList.clear()
                 sitesList.addAll(res)
             }
             sitesList
         } catch (e: Exception) {
-            android.util.Log.e("OnSiteRepository", "Error fetching sites: ${e.message}")
+            Log.e("OnSiteRepository", "Error fetching sites: ${e.message}")
             sitesList
         }
     }
 
     suspend fun addSite(name: String, address: String): Site {
-        val newSite = Site(UUID.randomUUID().toString(), name, address, true)
-        try {
-            api.createSite(newSite)
+        val newSite = Site(name = name, address = address, isActive = true)
+        return try {
+            val response = api.createSite(newSite)
+            Log.d("OnSiteRepository", "Successfully added site: ${response.name}")
+            sitesList.add(response)
+            response
         } catch (e: Exception) {
-            android.util.Log.e("OnSiteRepository", "Error adding site: ${e.message}")
+            Log.e("OnSiteRepository", "Error adding site: ${e.message}")
+            sitesList.add(newSite)
+            newSite
         }
-        sitesList.add(newSite)
-        return newSite
     }
 
     suspend fun getSiteUpdates(): List<SiteUpdate> {
@@ -100,7 +107,7 @@ object OnSiteRepository {
             }
             siteUpdatesList
         } catch (e: Exception) {
-            android.util.Log.e("OnSiteRepository", "Error fetching site updates: ${e.message}")
+            Log.e("OnSiteRepository", "Error fetching site updates: ${e.message}")
             siteUpdatesList
         }
     }
@@ -130,7 +137,7 @@ object OnSiteRepository {
         try {
             api.submitUpdate(newUpdate)
         } catch (e: Exception) {
-            android.util.Log.e("OnSiteRepository", "Error adding site update: ${e.message}")
+            Log.e("OnSiteRepository", "Error adding site update: ${e.message}")
         }
         siteUpdatesList.add(newUpdate)
         return newUpdate

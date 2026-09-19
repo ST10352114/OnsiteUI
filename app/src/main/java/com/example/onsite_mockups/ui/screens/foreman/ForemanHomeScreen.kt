@@ -44,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import androidx.compose.runtime.LaunchedEffect
 import com.example.onsite_mockups.ui.viewmodels.ForemanViewModel
 import androidx.compose.runtime.collectAsState
 
@@ -59,6 +60,10 @@ fun ForemanHomeScreen(
     var selectedTab by remember { mutableIntStateOf(0) }
     val sites by foremanViewModel.sites.collectAsState()
     val updates by foremanViewModel.updates.collectAsState()
+
+    LaunchedEffect(Unit) {
+        foremanViewModel.loadForemanData()
+    }
 
     Scaffold(
         containerColor = Color(0xFFF9F9FB),
@@ -307,7 +312,7 @@ fun ForemanHomeScreen(
                     statusText = if (isSubmitted) "Submitted" else "Needs update",
                     isSubmitted = isSubmitted,
                     footerText = if (isSubmitted) "Submitted today" else "Last update: Yesterday",
-                    onClick = { onSiteClick(site.id) }
+                    onClick = { onSiteClick(site.id ?: "") }
                 )
             }
 

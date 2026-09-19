@@ -45,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import androidx.compose.runtime.LaunchedEffect
 import com.example.onsite_mockups.ui.viewmodels.AdminViewModel
 import androidx.compose.runtime.collectAsState
 
@@ -59,6 +60,10 @@ fun SitesAndCrewScreen(
     var navTab by remember { mutableIntStateOf(1) } // Sites & Crew selected in bottom bar
     val sites by adminViewModel.sites.collectAsState()
     val foremen by adminViewModel.foremen.collectAsState()
+
+    LaunchedEffect(Unit) {
+        adminViewModel.loadAdminData()
+    }
 
     Scaffold(
         containerColor = Color(0xFFF9F9FB),

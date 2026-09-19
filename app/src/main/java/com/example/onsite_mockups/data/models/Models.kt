@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Profile(
-    @SerialName("id") val id: String,
+    @SerialName("id") val id: String? = null,
     @SerialName("full_name") val fullName: String,
     @SerialName("role") val role: String, // "admin", "foreman", "truck_driver"
     @SerialName("email") val email: String,
@@ -16,7 +16,7 @@ data class Profile(
 
 @Serializable
 data class Site(
-    @SerialName("id") val id: String,
+    @SerialName("id") val id: String? = null,
     @SerialName("name") val name: String,
     @SerialName("address") val address: String,
     @SerialName("is_active") val isActive: Boolean
@@ -24,7 +24,7 @@ data class Site(
 
 @Serializable
 data class SiteUpdate(
-    @SerialName("id") val id: String,
+    @SerialName("id") val id: String? = null,
     @SerialName("site_id") val siteId: String,
     @SerialName("foreman_id") val foremanId: String,
     @SerialName("update_date") val updateDate: String, // YYYY-MM-DD
