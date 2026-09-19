@@ -1,12 +1,15 @@
 package com.example.onsite_mockups.ui.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.onsite_mockups.data.models.Profile
+import com.example.onsite_mockups.data.network.RetrofitClient
 import com.example.onsite_mockups.data.network.SupabaseClient
 import com.example.onsite_mockups.data.repository.OnSiteRepository
 import io.github.jan.supabase.gotrue.auth
 import io.github.jan.supabase.gotrue.providers.builtin.Email
+import io.github.jan.supabase.gotrue.user.UserSession
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,6 +31,8 @@ class AuthViewModel : ViewModel() {
             return
         }
         _loginState.value = LoginState.Loading
+        Log.d("AuthViewModel", "Attempting login for: $email")
+        
         viewModelScope.launch {
             try {
                 auth.signInWith(Email) {
@@ -35,7 +40,15 @@ class AuthViewModel : ViewModel() {
                     this.password = password
                 }
                 
+                val session = auth.currentSessionOrNull()
+                session?.let { s ->
+                    Log.d("AuthViewModel", "Login successful, token obtained")
+                    RetrofitClient.setToken(s.accessToken)
+                }
+
                 val user = auth.currentUserOrNull()
+                Log.d("AuthViewModel", "User ID: ${user?.id}")
+                
                 val profile = if (user != null) {
                     try {
                         SupabaseClient.client.from("profiles")
@@ -45,7 +58,7 @@ class AuthViewModel : ViewModel() {
                                 }
                             }.decodeSingle<Profile>()
                     } catch (e: Exception) {
-                        android.util.Log.e("AuthViewModel", "Error fetching profile: ${e.message}")
+                        Log.e("AuthViewModel", "Error fetching profile: ${e.message}")
                         // Fallback to basic profile if DB fetch fails
                         Profile(
                             id = user.id,
@@ -61,13 +74,16 @@ class AuthViewModel : ViewModel() {
                 }
 
                 if (profile != null) {
+                    Log.d("AuthViewModel", "Profile loaded: ${profile.fullName} (${profile.role})")
                     _currentProfile.value = profile
                     _loginState.value = LoginState.Success(profile)
                     onSuccess(profile)
                 } else {
+                    Log.w("AuthViewModel", "Profile not found for user")
                     _loginState.value = LoginState.Error("User not found")
                 }
             } catch (e: Exception) {
+                Log.e("AuthViewModel", "Login error: ${e.message}")
                 _loginState.value = LoginState.Error(e.message ?: "Login failed")
             }
         }
@@ -79,6 +95,7 @@ class AuthViewModel : ViewModel() {
                 auth.signOut()
             } catch (_: Exception) {}
             OnSiteRepository.logout()
+            RetrofitClient.setToken(null)
             _currentProfile.value = null
             _loginState.value = LoginState.Idle
             onLoggedOut()

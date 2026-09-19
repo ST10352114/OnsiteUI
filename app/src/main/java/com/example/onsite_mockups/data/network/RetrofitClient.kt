@@ -1,5 +1,6 @@
 package com.example.onsite_mockups.data.network
 
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -7,16 +8,20 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
-    private var baseUrl = "https://onsite-api.onrender.com/" // Default Render or local URL
+    private const val BASE_URL = "https://onsiteapi-9n82.onrender.com/api/v1/"
+    
     private var authToken: String? = null
 
-    fun setBaseUrl(url: String) {
-        baseUrl = if (url.endsWith("/")) url else "$url/"
-        retrofitInstance = null
+    fun setToken(token: String?) {
+        authToken = token
     }
 
-    fun setAuthToken(token: String?) {
-        authToken = token
+    private val authInterceptor = Interceptor { chain ->
+        val requestBuilder = chain.request().newBuilder()
+        authToken?.let {
+            requestBuilder.addHeader("Authorization", "Bearer $it")
+        }
+        chain.proceed(requestBuilder.build())
     }
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
@@ -24,32 +29,17 @@ object RetrofitClient {
     }
 
     private val okHttpClient = OkHttpClient.Builder()
-        .addInterceptor { chain ->
-            val requestBuilder = chain.request().newBuilder()
-            authToken?.let {
-                requestBuilder.addHeader("Authorization", "Bearer $it")
-            }
-            chain.proceed(requestBuilder.build())
-        }
+        .addInterceptor(authInterceptor)
         .addInterceptor(loggingInterceptor)
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
 
-    private var retrofitInstance: Retrofit? = null
+    private val retrofit = Retrofit.Builder()
+        .baseUrl(BASE_URL)
+        .client(okHttpClient)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
 
-    private fun getRetrofit(): Retrofit {
-        if (retrofitInstance == null) {
-            retrofitInstance = Retrofit.Builder()
-                .baseUrl(baseUrl)
-                .client(okHttpClient)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-        }
-        return retrofitInstance!!
-    }
-
-    val apiService: ApiService by lazy {
-        getRetrofit().create(ApiService::class.java)
-    }
+    val apiService: OnSiteApiService = retrofit.create(OnSiteApiService::class.java)
 }

@@ -1,6 +1,7 @@
 package com.example.onsite_mockups.data.repository
 
 import com.example.onsite_mockups.data.models.*
+import com.example.onsite_mockups.data.network.RetrofitClient
 import com.example.onsite_mockups.data.network.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
@@ -8,6 +9,7 @@ import java.util.UUID
 
 object OnSiteRepository {
     private val supabase = SupabaseClient.client
+    private val api = RetrofitClient.apiService
 
     var currentProfile: Profile? = null
         private set
@@ -36,19 +38,12 @@ object OnSiteRepository {
 
     fun logout() {
         currentProfile = null
+        RetrofitClient.setToken(null)
     }
 
     suspend fun getProfiles(role: String? = null): List<Profile> {
         return try {
-            val res = if (role != null) {
-                supabase.from("profiles").select {
-                    filter {
-                        eq("role", role)
-                    }
-                }.decodeList<Profile>()
-            } else {
-                supabase.from("profiles").select().decodeList<Profile>()
-            }
+            val res = api.getProfiles(role)
             if (res.isNotEmpty()) {
                 profilesList.clear()
                 profilesList.addAll(res)
@@ -63,7 +58,7 @@ object OnSiteRepository {
     suspend fun addProfile(fullName: String, role: String, email: String): Profile {
         val newProfile = Profile(UUID.randomUUID().toString(), fullName, role, email, null, true)
         try {
-            supabase.from("profiles").insert(newProfile)
+            api.createProfile(newProfile)
         } catch (e: Exception) {
             android.util.Log.e("OnSiteRepository", "Error adding profile: ${e.message}")
         }
@@ -73,7 +68,7 @@ object OnSiteRepository {
 
     suspend fun getSites(): List<Site> {
         return try {
-            val res = supabase.from("sites").select().decodeList<Site>()
+            val res = api.getSites()
             if (res.isNotEmpty()) {
                 sitesList.clear()
                 sitesList.addAll(res)
@@ -88,7 +83,7 @@ object OnSiteRepository {
     suspend fun addSite(name: String, address: String): Site {
         val newSite = Site(UUID.randomUUID().toString(), name, address, true)
         try {
-            supabase.from("sites").insert(newSite)
+            api.createSite(newSite)
         } catch (e: Exception) {
             android.util.Log.e("OnSiteRepository", "Error adding site: ${e.message}")
         }
@@ -98,7 +93,7 @@ object OnSiteRepository {
 
     suspend fun getSiteUpdates(): List<SiteUpdate> {
         return try {
-            val res = supabase.from("site_updates").select().decodeList<SiteUpdate>()
+            val res = api.getSiteUpdates()
             if (res.isNotEmpty()) {
                 siteUpdatesList.clear()
                 siteUpdatesList.addAll(res)
@@ -133,7 +128,7 @@ object OnSiteRepository {
             notes = "Submitted via mobile application"
         )
         try {
-            supabase.from("site_updates").insert(newUpdate)
+            api.submitUpdate(newUpdate)
         } catch (e: Exception) {
             android.util.Log.e("OnSiteRepository", "Error adding site update: ${e.message}")
         }
