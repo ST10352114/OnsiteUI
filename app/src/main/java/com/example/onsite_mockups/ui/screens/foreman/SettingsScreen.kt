@@ -59,7 +59,10 @@ import com.example.onsite_mockups.data.repository.OnSiteRepository
 import com.example.onsite_mockups.ui.viewmodels.AuthViewModel
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
-
+import android.content.Context
+import androidx.fragment.app.FragmentActivity
+import androidx.compose.ui.platform.LocalContext
+import com.example.onsite_mockups.security.OnSiteBiometricManager
 @Composable
 fun SettingsScreen(
     authViewModel: AuthViewModel,
@@ -72,6 +75,20 @@ fun SettingsScreen(
         mutableIntStateOf(3)
     }
 
+    val context =
+        LocalContext.current
+
+    val activity =
+        context as? FragmentActivity
+
+    var biometricLoginEnabled by remember {
+        mutableStateOf(
+            OnSiteBiometricManager.isEnabled(
+                context
+            )
+        )
+    }
+
     val currentProfile by
     authViewModel.currentProfile.collectAsState()
 
@@ -80,10 +97,7 @@ fun SettingsScreen(
         mutableStateOf(true)
     }
 
-    var biometricLoginEnabled by
-    remember {
-        mutableStateOf(true)
-    }
+
 
     val scope =
         rememberCoroutineScope()
@@ -384,27 +398,58 @@ fun SettingsScreen(
 
                         SettingsSwitchItem(
                             icon =
-                                Icons.Default.Notifications,
+                                Icons.Default.Fingerprint,
                             title =
-                                "Push notifications",
+                                "Biometric login",
                             subtitle =
-                                "New site & reminder alerts",
+                                "Use fingerprint or Face ID",
                             checked =
-                                pushNotificationsEnabled,
-                            onCheckedChange = { enabled ->
+                                biometricLoginEnabled,
+                            onCheckedChange = biometric@{ enabled ->
 
-                                pushNotificationsEnabled =
-                                    enabled
+                                if (!enabled) {
 
-                                scope.launch {
-                                    try {
-                                        OnSiteRepository
-                                            .updateNotificationPreferences(
-                                                enabled
-                                            )
-                                    } catch (_: Exception) {
-                                    }
+                                    OnSiteBiometricManager.disable(
+                                        context
+                                    )
+
+                                    biometricLoginEnabled =
+                                        false
+
+                                    return@biometric
                                 }
+
+                                val profile =
+                                    currentProfile
+
+                                val biometricActivity =
+                                    activity
+
+                                if (
+                                    profile == null ||
+                                    biometricActivity == null
+                                ) {
+                                    return@biometric
+                                }
+
+                                OnSiteBiometricManager.authenticate(
+                                    activity =
+                                        biometricActivity,
+                                    title =
+                                        "Enable biometric login",
+                                    subtitle =
+                                        "Verify your identity to enable biometric login",
+                                    onSuccess = {
+
+                                        OnSiteBiometricManager.enable(
+                                            context,
+                                            profile.id.toString()
+                                        )
+
+                                        biometricLoginEnabled =
+                                            true
+                                    }
+                                )
                             }
                         )
                     }

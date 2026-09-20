@@ -131,6 +131,70 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    fun loginWithBiometrics(
+        onSuccess: (Profile) -> Unit
+    ) {
+        _loginState.value =
+            LoginState.Loading
+
+        viewModelScope.launch {
+            try {
+                val user =
+                    auth.currentUserOrNull()
+
+                if (user == null) {
+                    _loginState.value =
+                        LoginState.Error(
+                            "Your login session has expired."
+                        )
+
+                    return@launch
+                }
+
+                val session =
+                    auth.currentSessionOrNull()
+
+                if (session == null) {
+                    _loginState.value =
+                        LoginState.Error(
+                            "Your login session has expired."
+                        )
+
+                    return@launch
+                }
+
+                RetrofitClient.setToken(
+                    session.accessToken
+                )
+
+                val profile =
+                    loadProfileForCurrentUser()
+
+                if (profile == null) {
+                    _loginState.value =
+                        LoginState.Error(
+                            "Your OnSite profile could not be found."
+                        )
+
+                    return@launch
+                }
+
+                finishLogin(
+                    profile,
+                    onSuccess
+                )
+
+            } catch (e: Exception) {
+
+                _loginState.value =
+                    LoginState.Error(
+                        e.message
+                            ?: "Biometric login failed."
+                    )
+            }
+        }
+    }
+
     fun completeGoogleLogin(
         onSuccess: (Profile) -> Unit
     ) {

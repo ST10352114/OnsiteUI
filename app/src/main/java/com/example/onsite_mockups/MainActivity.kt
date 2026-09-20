@@ -8,7 +8,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
@@ -24,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.onsite_mockups.security.OnSiteBiometricManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -46,8 +46,9 @@ import com.example.onsite_mockups.ui.viewmodels.AdminViewModel
 import com.example.onsite_mockups.ui.viewmodels.AuthViewModel
 import com.example.onsite_mockups.ui.viewmodels.ForemanViewModel
 import io.github.jan.supabase.gotrue.handleDeeplinks
+import androidx.fragment.app.FragmentActivity
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
 
     companion object {
 
@@ -361,6 +362,10 @@ class MainActivity : ComponentActivity() {
 
                                 onLogout = {
 
+                                    OnSiteBiometricManager.disable(
+                                        this@MainActivity
+                                    )
+
                                     authViewModel.logout {
 
                                         navController.navigate(
@@ -368,12 +373,10 @@ class MainActivity : ComponentActivity() {
                                         ) {
 
                                             popUpTo(0) {
-                                                inclusive =
-                                                    true
+                                                inclusive = true
                                             }
 
-                                            launchSingleTop =
-                                                true
+                                            launchSingleTop = true
                                         }
                                     }
                                 }
@@ -523,6 +526,10 @@ class MainActivity : ComponentActivity() {
 
                                 onLogout = {
 
+                                    OnSiteBiometricManager.disable(
+                                        this@MainActivity
+                                    )
+
                                     authViewModel.logout {
 
                                         navController.navigate(
@@ -530,12 +537,10 @@ class MainActivity : ComponentActivity() {
                                         ) {
 
                                             popUpTo(0) {
-                                                inclusive =
-                                                    true
+                                                inclusive = true
                                             }
 
-                                            launchSingleTop =
-                                                true
+                                            launchSingleTop = true
                                         }
                                     }
                                 }

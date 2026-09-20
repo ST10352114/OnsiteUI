@@ -57,6 +57,9 @@ import com.example.onsite_mockups.ui.screens.foreman.SettingsSectionTitle
 import com.example.onsite_mockups.ui.screens.foreman.SettingsSwitchItem
 import com.example.onsite_mockups.ui.viewmodels.AuthViewModel
 import kotlinx.coroutines.launch
+import androidx.fragment.app.FragmentActivity
+import androidx.compose.ui.platform.LocalContext
+import com.example.onsite_mockups.security.OnSiteBiometricManager
 
 @Composable
 fun AdminSettingsScreen(
@@ -77,8 +80,18 @@ fun AdminSettingsScreen(
         mutableStateOf(true)
     }
 
+    val context =
+        LocalContext.current
+
+    val activity =
+        context as? FragmentActivity
+
     var biometricLoginEnabled by remember {
-        mutableStateOf(true)
+        mutableStateOf(
+            OnSiteBiometricManager.isEnabled(
+                context
+            )
+        )
     }
 
     val scope = rememberCoroutineScope()
@@ -357,27 +370,58 @@ fun AdminSettingsScreen(
 
                         SettingsSwitchItem(
                             icon =
-                                Icons.Default.Notifications,
+                                Icons.Default.Fingerprint,
                             title =
-                                "Push notifications",
+                                "Biometric login",
                             subtitle =
-                                "Alert me on every new submission",
+                                "Use fingerprint or Face ID",
                             checked =
-                                pushNotificationsEnabled,
-                            onCheckedChange = { enabled ->
+                                biometricLoginEnabled,
+                            onCheckedChange = biometric@{ enabled ->
 
-                                pushNotificationsEnabled =
-                                    enabled
+                                if (!enabled) {
 
-                                scope.launch {
-                                    try {
-                                        OnSiteRepository
-                                            .updateNotificationPreferences(
-                                                enabled
-                                            )
-                                    } catch (_: Exception) {
-                                    }
+                                    OnSiteBiometricManager.disable(
+                                        context
+                                    )
+
+                                    biometricLoginEnabled =
+                                        false
+
+                                    return@biometric
                                 }
+
+                                val profile =
+                                    currentProfile
+
+                                val biometricActivity =
+                                    activity
+
+                                if (
+                                    profile == null ||
+                                    biometricActivity == null
+                                ) {
+                                    return@biometric
+                                }
+
+                                OnSiteBiometricManager.authenticate(
+                                    activity =
+                                        biometricActivity,
+                                    title =
+                                        "Enable biometric login",
+                                    subtitle =
+                                        "Verify your identity to enable biometric login",
+                                    onSuccess = {
+
+                                        OnSiteBiometricManager.enable(
+                                            context,
+                                            profile.id.toString()
+                                        )
+
+                                        biometricLoginEnabled =
+                                            true
+                                    }
+                                )
                             }
                         )
                     }
