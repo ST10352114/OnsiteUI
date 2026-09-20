@@ -40,6 +40,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -53,9 +55,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-import androidx.compose.runtime.collectAsState
+import com.example.onsite_mockups.data.repository.OnSiteRepository
 import com.example.onsite_mockups.ui.viewmodels.AuthViewModel
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 
 @Composable
 fun SettingsScreen(
@@ -65,291 +68,554 @@ fun SettingsScreen(
     onNavigateAlerts: () -> Unit = {},
     onLogout: () -> Unit
 ) {
-    var selectedTab by remember { mutableIntStateOf(3) } // Profile tab selected
-    val currentProfile by authViewModel.currentProfile.collectAsState()
+    var selectedTab by remember {
+        mutableIntStateOf(3)
+    }
 
-    var pushNotificationsEnabled by remember { mutableStateOf(true) }
-    var biometricLoginEnabled by remember { mutableStateOf(true) }
+    val currentProfile by
+    authViewModel.currentProfile.collectAsState()
+
+    var pushNotificationsEnabled by
+    remember {
+        mutableStateOf(true)
+    }
+
+    var biometricLoginEnabled by
+    remember {
+        mutableStateOf(true)
+    }
+
+    val scope =
+        rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        try {
+            pushNotificationsEnabled =
+                OnSiteRepository
+                    .getNotificationPreferences()
+                    .pushEnabled
+        } catch (_: Exception) {
+        }
+    }
 
     Scaffold(
-        containerColor = Color(0xFFF9F9FB),
+        containerColor =
+            Color(0xFFF9F9FB),
         bottomBar = {
             NavigationBar(
-                containerColor = Color.White,
-                tonalElevation = 8.dp
+                containerColor =
+                    Color.White,
+                tonalElevation =
+                    8.dp
             ) {
                 NavigationBarItem(
-                    selected = selectedTab == 0,
+                    selected =
+                        selectedTab == 0,
                     onClick = {
                         selectedTab = 0
                         onNavigateHome()
                     },
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                    label = { Text("Home", fontSize = 11.sp) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFFFF6D00),
-                        selectedTextColor = Color(0xFFFF6D00),
-                        unselectedIconColor = Color(0xFF9AA0A6),
-                        unselectedTextColor = Color(0xFF9AA0A6),
-                        indicatorColor = Color.Transparent
-                    )
+                    icon = {
+                        Icon(
+                            Icons.Default.Home,
+                            contentDescription =
+                                "Home"
+                        )
+                    },
+                    label = {
+                        Text(
+                            "Home",
+                            fontSize = 11.sp
+                        )
+                    },
+                    colors =
+                        navigationColors()
                 )
+
                 NavigationBarItem(
-                    selected = selectedTab == 1,
+                    selected =
+                        selectedTab == 1,
                     onClick = {
                         selectedTab = 1
                         onNavigateAchievements()
                     },
-                    icon = { Icon(Icons.Default.EmojiEvents, contentDescription = "Achievements") },
-                    label = { Text("Achievements", fontSize = 11.sp) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFFFF6D00),
-                        selectedTextColor = Color(0xFFFF6D00),
-                        unselectedIconColor = Color(0xFF9AA0A6),
-                        unselectedTextColor = Color(0xFF9AA0A6),
-                        indicatorColor = Color.Transparent
-                    )
+                    icon = {
+                        Icon(
+                            Icons.Default.EmojiEvents,
+                            contentDescription =
+                                "Achievements"
+                        )
+                    },
+                    label = {
+                        Text(
+                            "Achievements",
+                            fontSize = 11.sp
+                        )
+                    },
+                    colors =
+                        navigationColors()
                 )
+
                 NavigationBarItem(
-                    selected = selectedTab == 2,
+                    selected =
+                        selectedTab == 2,
                     onClick = {
                         selectedTab = 2
                         onNavigateAlerts()
                     },
-                    icon = { Icon(Icons.Default.Notifications, contentDescription = "Alerts") },
-                    label = { Text("Alerts", fontSize = 11.sp) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFFFF6D00),
-                        selectedTextColor = Color(0xFFFF6D00),
-                        unselectedIconColor = Color(0xFF9AA0A6),
-                        unselectedTextColor = Color(0xFF9AA0A6),
-                        indicatorColor = Color.Transparent
-                    )
+                    icon = {
+                        Icon(
+                            Icons.Default.Notifications,
+                            contentDescription =
+                                "Alerts"
+                        )
+                    },
+                    label = {
+                        Text(
+                            "Alerts",
+                            fontSize = 11.sp
+                        )
+                    },
+                    colors =
+                        navigationColors()
                 )
+
                 NavigationBarItem(
-                    selected = selectedTab == 3,
-                    onClick = { selectedTab = 3 },
-                    icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
-                    label = { Text("Profile", fontSize = 11.sp) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFFFF6D00),
-                        selectedTextColor = Color(0xFFFF6D00),
-                        unselectedIconColor = Color(0xFF9AA0A6),
-                        unselectedTextColor = Color(0xFF9AA0A6),
-                        indicatorColor = Color.Transparent
-                    )
+                    selected =
+                        selectedTab == 3,
+                    onClick = {
+                        selectedTab = 3
+                    },
+                    icon = {
+                        Icon(
+                            Icons.Default.Person,
+                            contentDescription =
+                                "Profile"
+                        )
+                    },
+                    label = {
+                        Text(
+                            "Profile",
+                            fontSize = 11.sp
+                        )
+                    },
+                    colors =
+                        navigationColors()
                 )
             }
         }
     ) { innerPadding ->
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement =
+                Arrangement.spacedBy(16.dp)
         ) {
+
             item {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(
+                    modifier =
+                        Modifier.height(16.dp)
+                )
+
                 Text(
                     text = "Settings",
                     fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1A1D20)
+                    fontWeight =
+                        FontWeight.Bold,
+                    color =
+                        Color(0xFF1A1D20)
                 )
             }
 
             item {
-                // Profile Header Card
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                    modifier =
+                        Modifier.fillMaxWidth(),
+                    shape =
+                        RoundedCornerShape(16.dp),
+                    colors =
+                        CardDefaults.cardColors(
+                            containerColor =
+                                Color.White
+                        ),
+                    elevation =
+                        CardDefaults.cardElevation(
+                            defaultElevation =
+                                1.dp
+                        )
                 ) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                        verticalAlignment =
+                            Alignment.CenterVertically
                     ) {
-                        // Initials Avatar
                         Box(
-                            modifier = Modifier
-                                .size(52.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFF1A1D20)),
-                            contentAlignment = Alignment.Center
+                            modifier =
+                                Modifier
+                                    .size(52.dp)
+                                    .clip(
+                                        CircleShape
+                                    )
+                                    .background(
+                                        Color(0xFF1A1D20)
+                                    ),
+                            contentAlignment =
+                                Alignment.Center
                         ) {
                             Text(
-                                text = currentProfile?.fullName?.take(2)?.uppercase() ?: "TM",
-                                color = Color(0xFFFFC107),
+                                text =
+                                    currentProfile
+                                        ?.fullName
+                                        ?.take(2)
+                                        ?.uppercase()
+                                        ?: "TM",
+                                color =
+                                    Color(0xFFFFC107),
                                 fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold
+                                fontWeight =
+                                    FontWeight.Bold
                             )
                         }
 
-                        Spacer(modifier = Modifier.width(16.dp))
+                        Spacer(
+                            modifier =
+                                Modifier.width(16.dp)
+                        )
 
                         Column {
                             Text(
-                                text = currentProfile?.fullName ?: "Thabo Mokoena",
+                                text =
+                                    currentProfile
+                                        ?.fullName
+                                        ?: "Foreman",
                                 fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1A1D20)
+                                fontWeight =
+                                    FontWeight.Bold,
+                                color =
+                                    Color(0xFF1A1D20)
                             )
-                            Spacer(modifier = Modifier.height(2.dp))
+
+                            Spacer(
+                                modifier =
+                                    Modifier.height(2.dp)
+                            )
+
                             Text(
-                                text = if (currentProfile?.role == "foreman") "Foreman · Assigned sites" else "Employee",
+                                text =
+                                    if (
+                                        currentProfile
+                                            ?.role ==
+                                        "foreman"
+                                    ) {
+                                        "Foreman · Assigned sites"
+                                    } else {
+                                        "Employee"
+                                    },
                                 fontSize = 13.sp,
-                                color = Color(0xFF6C757D)
+                                color =
+                                    Color(0xFF6C757D)
                             )
                         }
                     }
                 }
             }
 
-            // PREFERENCES SECTION
             item {
-                Spacer(modifier = Modifier.height(4.dp))
-                SettingsSectionTitle(title = "PREFERENCES")
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(
+                    modifier =
+                        Modifier.height(4.dp)
+                )
+
+                SettingsSectionTitle(
+                    title = "PREFERENCES"
+                )
+
+                Spacer(
+                    modifier =
+                        Modifier.height(8.dp)
+                )
 
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                    modifier =
+                        Modifier.fillMaxWidth(),
+                    shape =
+                        RoundedCornerShape(16.dp),
+                    colors =
+                        CardDefaults.cardColors(
+                            containerColor =
+                                Color.White
+                        ),
+                    elevation =
+                        CardDefaults.cardElevation(
+                            defaultElevation =
+                                1.dp
+                        )
                 ) {
                     Column(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier =
+                            Modifier.fillMaxWidth()
                     ) {
                         SettingsNavigationItem(
-                            icon = Icons.Default.Language,
-                            title = "Language",
-                            subtitle = "English",
+                            icon =
+                                Icons.Default.Language,
+                            title =
+                                "Language",
+                            subtitle =
+                                "English",
                             onClick = {}
                         )
+
                         SettingsNavigationItem(
-                            icon = Icons.Default.DarkMode,
-                            title = "Theme",
-                            subtitle = "Light mode",
+                            icon =
+                                Icons.Default.DarkMode,
+                            title =
+                                "Theme",
+                            subtitle =
+                                "Light mode",
                             onClick = {}
                         )
+
                         SettingsSwitchItem(
-                            icon = Icons.Default.Notifications,
-                            title = "Push notifications",
-                            subtitle = "New site & reminder alerts",
-                            checked = pushNotificationsEnabled,
-                            onCheckedChange = { pushNotificationsEnabled = it }
+                            icon =
+                                Icons.Default.Notifications,
+                            title =
+                                "Push notifications",
+                            subtitle =
+                                "New site & reminder alerts",
+                            checked =
+                                pushNotificationsEnabled,
+                            onCheckedChange = { enabled ->
+
+                                pushNotificationsEnabled =
+                                    enabled
+
+                                scope.launch {
+                                    try {
+                                        OnSiteRepository
+                                            .updateNotificationPreferences(
+                                                enabled
+                                            )
+                                    } catch (_: Exception) {
+                                    }
+                                }
+                            }
                         )
                     }
                 }
             }
 
-            // SECURITY SECTION
             item {
-                Spacer(modifier = Modifier.height(4.dp))
-                SettingsSectionTitle(title = "SECURITY")
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(
+                    modifier =
+                        Modifier.height(4.dp)
+                )
+
+                SettingsSectionTitle(
+                    title = "SECURITY"
+                )
+
+                Spacer(
+                    modifier =
+                        Modifier.height(8.dp)
+                )
 
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                    modifier =
+                        Modifier.fillMaxWidth(),
+                    shape =
+                        RoundedCornerShape(16.dp),
+                    colors =
+                        CardDefaults.cardColors(
+                            containerColor =
+                                Color.White
+                        ),
+                    elevation =
+                        CardDefaults.cardElevation(
+                            defaultElevation =
+                                1.dp
+                        )
                 ) {
                     Column(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier =
+                            Modifier.fillMaxWidth()
                     ) {
                         SettingsSwitchItem(
-                            icon = Icons.Default.Fingerprint,
-                            title = "Biometric login",
-                            subtitle = "Use fingerprint or Face ID",
-                            checked = biometricLoginEnabled,
-                            onCheckedChange = { biometricLoginEnabled = it }
+                            icon =
+                                Icons.Default.Fingerprint,
+                            title =
+                                "Biometric login",
+                            subtitle =
+                                "Use fingerprint or Face ID",
+                            checked =
+                                biometricLoginEnabled,
+                            onCheckedChange = {
+                                biometricLoginEnabled =
+                                    it
+                            }
                         )
+
                         SettingsNavigationItem(
-                            icon = Icons.Default.Lock,
-                            title = "Change password",
-                            subtitle = "Last changed 3 months ago",
+                            icon =
+                                Icons.Default.Lock,
+                            title =
+                                "Change password",
+                            subtitle =
+                                "Last changed 3 months ago",
                             onClick = {}
                         )
                     }
                 }
             }
 
-            // DATA SECTION
             item {
-                Spacer(modifier = Modifier.height(4.dp))
-                SettingsSectionTitle(title = "DATA")
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(
+                    modifier =
+                        Modifier.height(4.dp)
+                )
+
+                SettingsSectionTitle(
+                    title = "DATA"
+                )
+
+                Spacer(
+                    modifier =
+                        Modifier.height(8.dp)
+                )
 
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        SettingsNavigationItem(
-                            icon = Icons.Default.Cloud,
-                            title = "Offline cache",
-                            subtitle = "2 updates stored on this device",
-                            onClick = {}
+                    modifier =
+                        Modifier.fillMaxWidth(),
+                    shape =
+                        RoundedCornerShape(16.dp),
+                    colors =
+                        CardDefaults.cardColors(
+                            containerColor =
+                                Color.White
+                        ),
+                    elevation =
+                        CardDefaults.cardElevation(
+                            defaultElevation =
+                                1.dp
                         )
-                    }
-                }
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-                // Log Out Button
-                OutlinedButton(
-                    onClick = onLogout,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFCDD2)),
-                    colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
-                        containerColor = Color.White
+                ) {
+                    SettingsNavigationItem(
+                        icon =
+                            Icons.Default.Cloud,
+                        title =
+                            "Offline cache",
+                        subtitle =
+                            "2 updates stored on this device",
+                        onClick = {}
                     )
+                }
+            }
+
+            item {
+                Spacer(
+                    modifier =
+                        Modifier.height(8.dp)
+                )
+
+                OutlinedButton(
+                    onClick =
+                        onLogout,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                    shape =
+                        RoundedCornerShape(12.dp),
+                    border =
+                        androidx.compose
+                            .foundation
+                            .BorderStroke(
+                                1.dp,
+                                Color(0xFFFFCDD2)
+                            ),
+                    colors =
+                        androidx.compose
+                            .material3
+                            .ButtonDefaults
+                            .outlinedButtonColors(
+                                containerColor =
+                                    Color.White
+                            )
                 ) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
+                        verticalAlignment =
+                            Alignment.CenterVertically,
+                        horizontalArrangement =
+                            Arrangement.Center
                     ) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Logout,
-                            contentDescription = "Log Out",
-                            tint = Color(0xFFD32F2F),
-                            modifier = Modifier.size(20.dp)
+                            imageVector =
+                                Icons.AutoMirrored.Filled.Logout,
+                            contentDescription =
+                                "Log Out",
+                            tint =
+                                Color(0xFFD32F2F),
+                            modifier =
+                                Modifier.size(20.dp)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Spacer(
+                            modifier =
+                                Modifier.width(8.dp)
+                        )
+
                         Text(
                             text = "Log Out",
                             fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFD32F2F)
+                            fontWeight =
+                                FontWeight.Bold,
+                            color =
+                                Color(0xFFD32F2F)
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(24.dp))
+
+                Spacer(
+                    modifier =
+                        Modifier.height(24.dp)
+                )
             }
         }
     }
 }
 
 @Composable
-fun SettingsSectionTitle(title: String) {
+private fun navigationColors() =
+    NavigationBarItemDefaults.colors(
+        selectedIconColor =
+            Color(0xFFFF6D00),
+        selectedTextColor =
+            Color(0xFFFF6D00),
+        unselectedIconColor =
+            Color(0xFF9AA0A6),
+        unselectedTextColor =
+            Color(0xFF9AA0A6),
+        indicatorColor =
+            Color.Transparent
+    )
+
+@Composable
+fun SettingsSectionTitle(
+    title: String
+) {
     Text(
         text = title,
         fontSize = 12.sp,
-        fontWeight = FontWeight.Bold,
-        color = Color(0xFF9AA0A6),
+        fontWeight =
+            FontWeight.Bold,
+        color =
+            Color(0xFF9AA0A6),
         letterSpacing = 1.sp
     )
 }
@@ -362,55 +628,89 @@ fun SettingsNavigationItem(
     onClick: () -> Unit
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable(
+                    onClick = onClick
+                )
+                .padding(16.dp),
+        horizontalArrangement =
+            Arrangement.SpaceBetween,
+        verticalAlignment =
+            Alignment.CenterVertically
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.weight(1f)
+            verticalAlignment =
+                Alignment.CenterVertically,
+            modifier =
+                Modifier.weight(1f)
         ) {
             Box(
-                modifier = Modifier
-                    .size(38.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(Color(0xFFF1F3F5)),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(38.dp)
+                        .clip(
+                            RoundedCornerShape(
+                                10.dp
+                            )
+                        )
+                        .background(
+                            Color(0xFFF1F3F5)
+                        ),
+                contentAlignment =
+                    Alignment.Center
             ) {
                 Icon(
-                    imageVector = icon,
-                    contentDescription = title,
-                    tint = Color(0xFF495057),
-                    modifier = Modifier.size(20.dp)
+                    imageVector =
+                        icon,
+                    contentDescription =
+                        title,
+                    tint =
+                        Color(0xFF495057),
+                    modifier =
+                        Modifier.size(20.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(
+                modifier =
+                    Modifier.width(16.dp)
+            )
 
             Column {
                 Text(
                     text = title,
                     fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1A1D20)
+                    fontWeight =
+                        FontWeight.Bold,
+                    color =
+                        Color(0xFF1A1D20)
                 )
-                Spacer(modifier = Modifier.height(2.dp))
+
+                Spacer(
+                    modifier =
+                        Modifier.height(2.dp)
+                )
+
                 Text(
                     text = subtitle,
                     fontSize = 12.sp,
-                    color = Color(0xFF6C757D)
+                    color =
+                        Color(0xFF6C757D)
                 )
             }
         }
 
         Icon(
-            imageVector = Icons.Default.ChevronRight,
-            contentDescription = "More",
-            tint = Color(0xFFADB5BD),
-            modifier = Modifier.size(20.dp)
+            imageVector =
+                Icons.Default.ChevronRight,
+            contentDescription =
+                "More",
+            tint =
+                Color(0xFFADB5BD),
+            modifier =
+                Modifier.size(20.dp)
         )
     }
 }
@@ -424,58 +724,93 @@ fun SettingsSwitchItem(
     onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+        horizontalArrangement =
+            Arrangement.SpaceBetween,
+        verticalAlignment =
+            Alignment.CenterVertically
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.weight(1f)
+            verticalAlignment =
+                Alignment.CenterVertically,
+            modifier =
+                Modifier.weight(1f)
         ) {
             Box(
-                modifier = Modifier
-                    .size(38.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(Color(0xFFF1F3F5)),
-                contentAlignment = Alignment.Center
+                modifier =
+                    Modifier
+                        .size(38.dp)
+                        .clip(
+                            RoundedCornerShape(
+                                10.dp
+                            )
+                        )
+                        .background(
+                            Color(0xFFF1F3F5)
+                        ),
+                contentAlignment =
+                    Alignment.Center
             ) {
                 Icon(
-                    imageVector = icon,
-                    contentDescription = title,
-                    tint = Color(0xFF495057),
-                    modifier = Modifier.size(20.dp)
+                    imageVector =
+                        icon,
+                    contentDescription =
+                        title,
+                    tint =
+                        Color(0xFF495057),
+                    modifier =
+                        Modifier.size(20.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(
+                modifier =
+                    Modifier.width(16.dp)
+            )
 
             Column {
                 Text(
                     text = title,
                     fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1A1D20)
+                    fontWeight =
+                        FontWeight.Bold,
+                    color =
+                        Color(0xFF1A1D20)
                 )
-                Spacer(modifier = Modifier.height(2.dp))
+
+                Spacer(
+                    modifier =
+                        Modifier.height(2.dp)
+                )
+
                 Text(
                     text = subtitle,
                     fontSize = 12.sp,
-                    color = Color(0xFF6C757D)
+                    color =
+                        Color(0xFF6C757D)
                 )
             }
         }
 
         Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.White,
-                checkedTrackColor = Color(0xFFFF6D00),
-                uncheckedThumbColor = Color.White,
-                uncheckedTrackColor = Color(0xFFE0E0E0)
-            )
+            checked =
+                checked,
+            onCheckedChange =
+                onCheckedChange,
+            colors =
+                SwitchDefaults.colors(
+                    checkedThumbColor =
+                        Color.White,
+                    checkedTrackColor =
+                        Color(0xFFFF6D00),
+                    uncheckedThumbColor =
+                        Color.White,
+                    uncheckedTrackColor =
+                        Color(0xFFE0E0E0)
+                )
         )
     }
 }

@@ -1,5 +1,5 @@
 package com.example.onsite_mockups
-
+import com.example.onsite_mockups.ui.screens.shared.NotificationScreen
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
@@ -102,7 +102,52 @@ class MainActivity : ComponentActivity() {
                                 innerPadding
                             )
                     ) {
+                        composable(
+                            Screen.Notifications.route
+                        ) {
+                            NotificationScreen(
+                                onBackClick = {
+                                    navController.popBackStack()
+                                },
+                                onNotificationClick = { notification ->
 
+                                    val data =
+                                        try {
+                                            kotlinx.serialization.json.Json
+                                                .decodeFromString<
+                                                        Map<String, String>
+                                                        >(notification.data)
+                                        } catch (_: Exception) {
+                                            emptyMap()
+                                        }
+
+                                    when (notification.type) {
+
+                                        "daily_report_submitted" -> {
+                                            val updateId =
+                                                data["update_id"]
+
+                                            if (
+                                                !updateId.isNullOrBlank()
+                                            ) {
+                                                adminViewModel
+                                                    .selectUpdate(
+                                                        updateId
+                                                    )
+
+                                                navController.navigate(
+                                                    Screen.AdminUpdateDetail.route
+                                                )
+                                            }
+                                        }
+
+                                        "site_assigned" -> {
+                                            navController.popBackStack()
+                                        }
+                                    }
+                                }
+                            )
+                        }
                         composable(
                             Screen.Splash.route
                         ) {
@@ -184,16 +229,12 @@ class MainActivity : ComponentActivity() {
                         ) {
 
                             AdminDashboardScreen(
-                                adminViewModel =
-                                    adminViewModel,
+                                adminViewModel = adminViewModel,
 
-                                onUpdateClick = {
-                                        updateId ->
+                                onUpdateClick = { updateId ->
 
                                     adminViewModel
-                                        .selectUpdate(
-                                            updateId
-                                        )
+                                        .selectUpdate(updateId)
 
                                     navController.navigate(
                                         Screen.AdminUpdateDetail.route
@@ -201,16 +242,20 @@ class MainActivity : ComponentActivity() {
                                 },
 
                                 onSitesCrewClick = {
-
                                     navController.navigate(
                                         Screen.SitesAndCrew.route
                                     )
                                 },
 
                                 onProfileClick = {
-
                                     navController.navigate(
                                         Screen.AdminSettings.route
+                                    )
+                                },
+
+                                onNotificationClick = {
+                                    navController.navigate(
+                                        Screen.Notifications.route
                                     )
                                 }
                             )
@@ -331,8 +376,7 @@ class MainActivity : ComponentActivity() {
                         ) {
 
                             ForemanHomeScreen(
-                                foremanViewModel =
-                                    foremanViewModel,
+                                foremanViewModel = foremanViewModel,
 
                                 profile =
                                     authViewModel
@@ -340,17 +384,12 @@ class MainActivity : ComponentActivity() {
                                         .collectAsState()
                                         .value,
 
-                                onSiteClick = {
-                                        siteId ->
+                                onSiteClick = { siteId ->
 
-                                    if (
-                                        siteId.isNotBlank()
-                                    ) {
+                                    if (siteId.isNotBlank()) {
 
                                         foremanViewModel
-                                            .selectSite(
-                                                siteId
-                                            )
+                                            .selectSite(siteId)
 
                                         navController.navigate(
                                             Screen.DailyUpdateForm.route
@@ -359,16 +398,20 @@ class MainActivity : ComponentActivity() {
                                 },
 
                                 onAchievementsClick = {
-
                                     navController.navigate(
                                         Screen.Achievements.route
                                     )
                                 },
 
                                 onProfileClick = {
-
                                     navController.navigate(
                                         Screen.Settings.route
+                                    )
+                                },
+
+                                onNotificationClick = {
+                                    navController.navigate(
+                                        Screen.Notifications.route
                                     )
                                 }
                             )
