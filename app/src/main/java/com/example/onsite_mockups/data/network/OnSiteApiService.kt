@@ -23,6 +23,11 @@ import retrofit2.http.Query
 
 interface OnSiteApiService {
 
+    @POST("auth/google-register")
+    suspend fun registerGoogleUser(
+        @Body request: GoogleRegistrationRequest
+    ): Profile
+
     @GET("profiles")
     suspend fun getProfiles(
         @Query("role")
@@ -167,4 +172,10 @@ data class PhotoInput(
 
     @kotlinx.serialization.SerialName("caption")
     val caption: String? = null
+)
+
+@kotlinx.serialization.Serializable
+data class GoogleRegistrationRequest(
+    @kotlinx.serialization.SerialName("fullName")
+    val fullName: String
 )

@@ -1,4 +1,6 @@
 package com.example.onsite_mockups
+
+import com.example.onsite_mockups.data.network.SupabaseClient
 import com.example.onsite_mockups.ui.screens.shared.NotificationScreen
 import android.Manifest
 import android.content.pm.PackageManager
@@ -42,6 +44,7 @@ import com.example.onsite_mockups.ui.theme.OnSiteMockupsTheme
 import com.example.onsite_mockups.ui.viewmodels.AdminViewModel
 import com.example.onsite_mockups.ui.viewmodels.AuthViewModel
 import com.example.onsite_mockups.ui.viewmodels.ForemanViewModel
+import io.github.jan.supabase.gotrue.handleDeeplinks
 
 class MainActivity : ComponentActivity() {
 
@@ -60,7 +63,11 @@ class MainActivity : ComponentActivity() {
 
         super.onCreate(
             savedInstanceState
+
         )
+        SupabaseClient
+            .client
+            .handleDeeplinks(intent)
 
         enableEdgeToEdge()
 
@@ -178,18 +185,10 @@ class MainActivity : ComponentActivity() {
                                 authViewModel =
                                     authViewModel,
 
-                                onLoginSuccess = {
-
-                                    val profile =
-                                        authViewModel
-                                            .currentProfile
-                                            .value
+                                onGoogleLoginSuccess = { profile ->
 
                                     val destination =
-                                        if (
-                                            profile?.role ==
-                                            "admin"
-                                        ) {
+                                        if (profile.role == "admin") {
 
                                             adminViewModel
                                                 .loadAdminData()
@@ -212,12 +211,48 @@ class MainActivity : ComponentActivity() {
                                     navController.navigate(
                                         destination
                                     ) {
-
                                         popUpTo(
                                             Screen.Login.route
                                         ) {
-                                            inclusive =
-                                                true
+                                            inclusive = true
+                                        }
+                                    }
+                                },
+
+                                onLoginSuccess = {
+                                    val profile =
+                                        authViewModel
+                                            .currentProfile
+                                            .value
+
+                                    val destination =
+                                        if (profile?.role == "admin") {
+
+                                            adminViewModel
+                                                .loadAdminData()
+
+                                            Screen.AdminDashboard.route
+
+                                        } else {
+
+                                            foremanViewModel
+                                                .setForemanProfile(
+                                                    profile
+                                                )
+
+                                            foremanViewModel
+                                                .loadForemanData()
+
+                                            Screen.ForemanHome.route
+                                        }
+
+                                    navController.navigate(
+                                        destination
+                                    ) {
+                                        popUpTo(
+                                            Screen.Login.route
+                                        ) {
+                                            inclusive = true
                                         }
                                     }
                                 }

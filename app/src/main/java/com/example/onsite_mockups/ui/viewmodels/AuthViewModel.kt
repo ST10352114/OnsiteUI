@@ -4,11 +4,13 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.onsite_mockups.data.models.Profile
+import com.example.onsite_mockups.data.network.GoogleRegistrationRequest
 import com.example.onsite_mockups.data.network.RetrofitClient
 import com.example.onsite_mockups.data.network.SupabaseClient
 import com.example.onsite_mockups.data.repository.OnSiteRepository
 import com.google.firebase.messaging.FirebaseMessaging
 import io.github.jan.supabase.gotrue.auth
+import io.github.jan.supabase.gotrue.providers.Google
 import io.github.jan.supabase.gotrue.providers.builtin.Email
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +20,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 class AuthViewModel : ViewModel() {
+
+    companion object {
+        private const val TAG =
+            "AuthViewModel"
+
+        const val GOOGLE_REDIRECT_URL =
+            "onsite://login-callback"
+    }
 
     private val _currentProfile =
         MutableStateFlow<Profile?>(null)
@@ -43,15 +53,13 @@ class AuthViewModel : ViewModel() {
         password: String,
         onSuccess: (Profile) -> Unit
     ) {
-
         if (
             email.isBlank() ||
             password.isBlank()
         ) {
-
             _loginState.value =
                 LoginState.Error(
-                    "Email and password cannot be empty"
+                    "Email and password cannot be empty."
                 )
 
             return
@@ -60,182 +68,292 @@ class AuthViewModel : ViewModel() {
         _loginState.value =
             LoginState.Loading
 
-        Log.d(
-            "AuthViewModel",
-            "Attempting login."
-        )
-
         viewModelScope.launch {
-
             try {
-
                 auth.signInWith(
                     Email
                 ) {
                     this.email =
-                        email
+                        email.trim()
 
                     this.password =
                         password
                 }
 
-                val session =
-                    auth.currentSessionOrNull()
-
-                session?.let { s ->
-
-                    Log.d(
-                        "AuthViewModel",
-                        "Login successful."
-                    )
-
-                    RetrofitClient
-                        .setToken(
-                            s.accessToken
-                        )
-                }
-
-                val user =
-                    auth.currentUserOrNull()
-
-                Log.d(
-                    "AuthViewModel",
-                    "Supabase user authenticated."
+                completeAuthenticatedLogin(
+                    onSuccess = onSuccess
                 )
 
-                val profile =
-                    if (user != null) {
-
-                        try {
-
-                            SupabaseClient
-                                .client
-                                .from("profiles")
-                                .select {
-                                    filter {
-                                        eq(
-                                            "id",
-                                            user.id
-                                        )
-                                    }
-                                }
-                                .decodeSingle<Profile>()
-
-                        } catch (e: Exception) {
-
-                            Log.e(
-                                "AuthViewModel",
-                                "Error fetching profile.",
-                                e
-                            )
-
-                            Profile(
-                                id =
-                                    user.id,
-
-                                fullName =
-                                    email
-                                        .substringBefore(
-                                            "@"
-                                        ),
-
-                                role =
-                                    if (
-                                        email.contains(
-                                            "admin"
-                                        )
-                                    ) {
-                                        "admin"
-                                    } else {
-                                        "foreman"
-                                    },
-
-                                email =
-                                    email,
-
-                                phone =
-                                    null,
-
-                                isActive =
-                                    true
-                            )
-                        }
-
-                    } else {
-                        null
-                    }
-
-                if (profile != null) {
-
-                    Log.d(
-                        "AuthViewModel",
-                        "Profile loaded: ${profile.fullName} (${profile.role})"
-                    )
-
-                    _currentProfile.value =
-                        profile
-
-                    OnSiteRepository
-                        .setCurrentProfile(
-                            profile
-                        )
-
-                    registerFcmToken()
-
-                    _loginState.value =
-                        LoginState.Success(
-                            profile
-                        )
-
-                    onSuccess(
-                        profile
-                    )
-
-                } else {
-
-                    Log.w(
-                        "AuthViewModel",
-                        "Profile not found."
-                    )
-
-                    _loginState.value =
-                        LoginState.Error(
-                            "User not found"
-                        )
-                }
-
             } catch (e: Exception) {
-
                 Log.e(
-                    "AuthViewModel",
-                    "Login error.",
+                    TAG,
+                    "Email login failed.",
                     e
                 )
 
                 _loginState.value =
                     LoginState.Error(
                         e.message
-                            ?: "Login failed"
+                            ?: "Login failed."
                     )
             }
         }
     }
 
-    private fun registerFcmToken() {
+    fun loginWithGoogle() {
+        _loginState.value =
+            LoginState.Loading
 
         viewModelScope.launch {
-
             try {
+                auth.signInWith(
+                    Google,
+                    redirectUrl =
+                        GOOGLE_REDIRECT_URL
+                )
 
+                _loginState.value =
+                    LoginState.Idle
+
+            } catch (e: Exception) {
+                Log.e(
+                    TAG,
+                    "Google OAuth failed to start.",
+                    e
+                )
+
+                _loginState.value =
+                    LoginState.Error(
+                        e.message
+                            ?: "Could not start Google sign-in."
+                    )
+            }
+        }
+    }
+
+    fun completeGoogleLogin(
+        onSuccess: (Profile) -> Unit
+    ) {
+        _loginState.value =
+            LoginState.Loading
+
+        viewModelScope.launch {
+            try {
+                val user =
+                    auth.currentUserOrNull()
+
+                if (user == null) {
+                    _loginState.value =
+                        LoginState.Error(
+                            "Google sign-in did not return an authenticated user."
+                        )
+
+                    return@launch
+                }
+
+                val existingProfile =
+                    try {
+                        SupabaseClient
+                            .client
+                            .from("profiles")
+                            .select {
+                                filter {
+                                    eq(
+                                        "id",
+                                        user.id
+                                    )
+                                }
+                            }
+                            .decodeSingle<Profile>()
+                    } catch (_: Exception) {
+                        null
+                    }
+
+                val profile =
+                    if (existingProfile != null) {
+                        existingProfile
+                    } else {
+                        val fullName =
+                            user.email
+                                ?.substringBefore("@")
+                                ?.replaceFirstChar {
+                                    it.uppercase()
+                                }
+                                ?: "OnSite User"
+
+                        RetrofitClient
+                            .apiService
+                            .registerGoogleUser(
+                                GoogleRegistrationRequest(
+                                    fullName =
+                                        fullName
+                                )
+                            )
+                    }
+
+                finishLogin(
+                    profile =
+                        profile,
+                    onSuccess =
+                        onSuccess
+                )
+
+            } catch (e: Exception) {
+                Log.e(
+                    TAG,
+                    "Google login completion failed.",
+                    e
+                )
+
+                _loginState.value =
+                    LoginState.Error(
+                        e.message
+                            ?: "Google sign-in failed."
+                    )
+            }
+        }
+    }
+
+    private fun completeAuthenticatedLogin(
+        onSuccess: (Profile) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val profile =
+                    loadProfileForCurrentUser()
+
+                if (profile == null) {
+                    _loginState.value =
+                        LoginState.Error(
+                            "Your OnSite profile could not be found. Contact an administrator."
+                        )
+
+                    return@launch
+                }
+
+                finishLogin(
+                    profile =
+                        profile,
+                    onSuccess =
+                        onSuccess
+                )
+
+            } catch (e: Exception) {
+                Log.e(
+                    TAG,
+                    "Authenticated login completion failed.",
+                    e
+                )
+
+                _loginState.value =
+                    LoginState.Error(
+                        e.message
+                            ?: "Login failed."
+                    )
+            }
+        }
+    }
+
+    private suspend fun loadProfileForCurrentUser():
+            Profile? {
+
+        val user =
+            auth.currentUserOrNull()
+                ?: return null
+
+        val session =
+            auth.currentSessionOrNull()
+
+        if (session == null) {
+            return null
+        }
+
+        RetrofitClient.setToken(
+            session.accessToken
+        )
+
+        return try {
+            SupabaseClient
+                .client
+                .from("profiles")
+                .select {
+                    filter {
+                        eq(
+                            "id",
+                            user.id
+                        )
+                    }
+                }
+                .decodeSingle<Profile>()
+
+        } catch (e: Exception) {
+            Log.e(
+                TAG,
+                "Could not load profile.",
+                e
+            )
+
+            null
+        }
+    }
+
+    private fun finishLogin(
+        profile: Profile,
+        onSuccess: (Profile) -> Unit
+    ) {
+        if (!profile.isActive) {
+            _loginState.value =
+                LoginState.Error(
+                    "Your OnSite account is inactive."
+                )
+
+            return
+        }
+
+        val session =
+            auth.currentSessionOrNull()
+
+        if (session == null) {
+            _loginState.value =
+                LoginState.Error(
+                    "Authentication session is unavailable."
+                )
+
+            return
+        }
+
+        RetrofitClient.setToken(
+            session.accessToken
+        )
+
+        _currentProfile.value =
+            profile
+
+        OnSiteRepository
+            .setCurrentProfile(
+                profile
+            )
+
+        registerFcmToken()
+
+        _loginState.value =
+            LoginState.Success(
+                profile
+            )
+
+        onSuccess(profile)
+    }
+
+    private fun registerFcmToken() {
+        viewModelScope.launch {
+            try {
                 val token =
                     FirebaseMessaging
                         .getInstance()
                         .token
                         .await()
 
-                if (
-                    token.isBlank()
-                ) {
+                if (token.isBlank()) {
                     return@launch
                 }
 
@@ -245,14 +363,13 @@ class AuthViewModel : ViewModel() {
                     )
 
                 Log.d(
-                    "AuthViewModel",
-                    "FCM token registered with API."
+                    TAG,
+                    "FCM token registered."
                 )
 
             } catch (e: Exception) {
-
                 Log.e(
-                    "AuthViewModel",
+                    TAG,
                     "Failed to register FCM token.",
                     e
                 )
@@ -263,27 +380,19 @@ class AuthViewModel : ViewModel() {
     fun logout(
         onLoggedOut: () -> Unit
     ) {
-
         viewModelScope.launch {
-
             try {
-
                 val token =
                     try {
-
                         FirebaseMessaging
                             .getInstance()
                             .token
                             .await()
-
                     } catch (_: Exception) {
                         null
                     }
 
-                if (
-                    !token.isNullOrBlank()
-                ) {
-
+                if (!token.isNullOrBlank()) {
                     OnSiteRepository
                         .deactivateDeviceToken(
                             token
@@ -298,9 +407,7 @@ class AuthViewModel : ViewModel() {
             OnSiteRepository.logout()
 
             RetrofitClient
-                .setToken(
-                    null
-                )
+                .setToken(null)
 
             _currentProfile.value =
                 null
