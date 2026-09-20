@@ -131,8 +131,8 @@ data class UpdatePhoto(
     @SerialName("updateId")
     val updateId: String? = null,
 
-    @SerialName("storagePath")
-    val storagePath: String,
+    @SerialName("photoData")
+    val photoData: String,
 
     @SerialName("caption")
     val caption: String? = null,
@@ -163,4 +163,13 @@ data class SiteForemanAssignment(
 
     @SerialName("foremanName")
     val foremanName: String
+)
+
+@Serializable
+data class StaffMember(
+    @SerialName("name")
+    val name: String,
+
+    @SerialName("job")
+    val job: String
 )

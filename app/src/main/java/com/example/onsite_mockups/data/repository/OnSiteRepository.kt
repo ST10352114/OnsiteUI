@@ -8,22 +8,36 @@ import com.example.onsite_mockups.data.models.Site
 import com.example.onsite_mockups.data.models.SiteEditRequest
 import com.example.onsite_mockups.data.models.SiteForemanAssignment
 import com.example.onsite_mockups.data.models.SiteUpdate
+import com.example.onsite_mockups.data.network.OnSiteApiService
+import com.example.onsite_mockups.data.network.PhotoInput
 import com.example.onsite_mockups.data.network.RetrofitClient
-import java.util.UUID
+import com.example.onsite_mockups.data.network.SiteUpdateRequest
 
 object OnSiteRepository {
 
-    private val api = RetrofitClient.apiService
+    private val api =
+        RetrofitClient.apiService
 
     var currentProfile: Profile? = null
         private set
 
-    private val profilesList = mutableListOf<Profile>()
-    private val sitesList = mutableListOf<Site>()
+    private val profilesList =
+        mutableListOf<Profile>()
+
+    private val sitesList =
+        mutableListOf<Site>()
+
     private val assignmentsList =
         mutableListOf<SiteForemanAssignment>()
+
     private val siteUpdatesList =
         mutableListOf<SiteUpdate>()
+
+    fun setCurrentProfile(
+        profile: Profile?
+    ) {
+        currentProfile = profile
+    }
 
     fun logout() {
         currentProfile = null
@@ -33,8 +47,11 @@ object OnSiteRepository {
     suspend fun getProfiles(
         role: String? = null
     ): List<Profile> {
+
         return try {
-            val response = api.getProfiles(role)
+
+            val response =
+                api.getProfiles(role)
 
             profilesList.clear()
             profilesList.addAll(response)
@@ -49,7 +66,9 @@ object OnSiteRepository {
             } else {
                 profilesList.toList()
             }
+
         } catch (e: Exception) {
+
             Log.e(
                 "OnSiteRepository",
                 "Error fetching profiles",
@@ -66,15 +85,17 @@ object OnSiteRepository {
         email: String
     ): CreateProfileResponse {
 
-        val newProfile = Profile(
-            fullName = fullName,
-            role = role,
-            email = email,
-            phone = null,
-            isActive = true
-        )
+        val newProfile =
+            Profile(
+                fullName = fullName,
+                role = role,
+                email = email,
+                phone = null,
+                isActive = true
+            )
 
         return try {
+
             val response =
                 api.createProfile(newProfile)
 
@@ -82,15 +103,14 @@ object OnSiteRepository {
                 it.id == response.profile.id
             }
 
-            profilesList.add(response.profile)
-
-            Log.d(
-                "OnSiteRepository",
-                "Successfully added profile: ${response.profile.fullName}"
+            profilesList.add(
+                response.profile
             )
 
             response
+
         } catch (e: Exception) {
+
             Log.e(
                 "OnSiteRepository",
                 "Error adding profile",
@@ -102,19 +122,19 @@ object OnSiteRepository {
     }
 
     suspend fun getSites(): List<Site> {
+
         return try {
-            val response = api.getSites()
+
+            val response =
+                api.getSites()
 
             sitesList.clear()
             sitesList.addAll(response)
 
-            Log.d(
-                "OnSiteRepository",
-                "Fetched ${response.size} sites from API"
-            )
-
             sitesList.toList()
+
         } catch (e: Exception) {
+
             Log.e(
                 "OnSiteRepository",
                 "Error fetching sites",
@@ -130,13 +150,15 @@ object OnSiteRepository {
         address: String
     ): Site {
 
-        val newSite = Site(
-            name = name,
-            address = address,
-            isActive = true
-        )
+        val newSite =
+            Site(
+                name = name,
+                address = address,
+                isActive = true
+            )
 
         return try {
+
             val response =
                 api.createSite(newSite)
 
@@ -146,13 +168,10 @@ object OnSiteRepository {
 
             sitesList.add(response)
 
-            Log.d(
-                "OnSiteRepository",
-                "Successfully added site: ${response.name}"
-            )
-
             response
+
         } catch (e: Exception) {
+
             Log.e(
                 "OnSiteRepository",
                 "Error adding site",
@@ -170,13 +189,15 @@ object OnSiteRepository {
         isActive: Boolean
     ): Site {
 
-        val request = SiteEditRequest(
-            name = name.trim(),
-            address = address.trim(),
-            isActive = isActive
-        )
+        val request =
+            SiteEditRequest(
+                name = name.trim(),
+                address = address.trim(),
+                isActive = isActive
+            )
 
         return try {
+
             val response =
                 api.updateSite(
                     id = id,
@@ -189,13 +210,10 @@ object OnSiteRepository {
 
             sitesList.add(response)
 
-            Log.d(
-                "OnSiteRepository",
-                "Successfully updated site: ${response.name}"
-            )
-
             response
+
         } catch (e: Exception) {
+
             Log.e(
                 "OnSiteRepository",
                 "Error updating site",
@@ -210,19 +228,17 @@ object OnSiteRepository {
             List<SiteForemanAssignment> {
 
         return try {
+
             val response =
                 api.getAssignments()
 
             assignmentsList.clear()
             assignmentsList.addAll(response)
 
-            Log.d(
-                "OnSiteRepository",
-                "Fetched ${response.size} site/foreman assignments"
-            )
-
             assignmentsList.toList()
+
         } catch (e: Exception) {
+
             Log.e(
                 "OnSiteRepository",
                 "Error fetching assignments",
@@ -239,6 +255,7 @@ object OnSiteRepository {
     ): SiteForemanAssignment? {
 
         return try {
+
             val request =
                 AssignmentRequest(
                     siteId = siteId,
@@ -247,22 +264,19 @@ object OnSiteRepository {
 
             api.createAssignment(request)
 
-            Log.d(
-                "OnSiteRepository",
-                "Foreman $foremanId assigned to site $siteId"
-            )
-
-            val refreshedAssignments =
+            val refreshed =
                 getAssignments()
 
-            refreshedAssignments.firstOrNull {
+            refreshed.firstOrNull {
                 it.siteId == siteId &&
                         it.foremanId == foremanId
             }
+
         } catch (e: Exception) {
+
             Log.e(
                 "OnSiteRepository",
-                "Error assigning foreman to site",
+                "Error assigning foreman",
                 e
             )
 
@@ -274,34 +288,23 @@ object OnSiteRepository {
         siteId: String,
         foremanId: String
     ) {
-        try {
-            api.deleteAssignment(
-                siteId = siteId,
-                foremanId = foremanId
-            )
 
-            assignmentsList.removeAll {
-                it.siteId == siteId &&
-                        it.foremanId == foremanId
-            }
+        api.deleteAssignment(
+            siteId = siteId,
+            foremanId = foremanId
+        )
 
-            Log.d(
-                "OnSiteRepository",
-                "Removed foreman $foremanId from site $siteId"
-            )
-        } catch (e: Exception) {
-            Log.e(
-                "OnSiteRepository",
-                "Error removing assignment",
-                e
-            )
-
-            throw e
+        assignmentsList.removeAll {
+            it.siteId == siteId &&
+                    it.foremanId == foremanId
         }
     }
 
-    suspend fun getSiteUpdates(): List<SiteUpdate> {
+    suspend fun getSiteUpdates():
+            List<SiteUpdate> {
+
         return try {
+
             val response =
                 api.getSiteUpdates()
 
@@ -309,7 +312,9 @@ object OnSiteRepository {
             siteUpdatesList.addAll(response)
 
             siteUpdatesList.toList()
+
         } catch (e: Exception) {
+
             Log.e(
                 "OnSiteRepository",
                 "Error fetching site updates",
@@ -322,48 +327,46 @@ object OnSiteRepository {
 
     suspend fun addSiteUpdate(
         siteId: String,
-        headcount: Int,
         staffNames: String,
         powerTools: String,
-        plantMachines: String
+        plantMachines: String,
+        photos: List<PhotoInput>,
+        notes: String?
     ): SiteUpdate {
 
-        val newUpdate = SiteUpdate(
-            id = UUID.randomUUID().toString(),
-            siteId = siteId,
-            foremanId =
-                currentProfile?.id ?: "",
-            updateDate = "2026-09-18",
-            forecastedLabor = headcount + 2,
-            bricklayers = headcount / 3,
-            plasterers = headcount / 3,
-            pavers =
-                headcount -
-                        (headcount / 3) * 2,
-            actualLabor = headcount,
-            staffNames = staffNames,
-            powerTools = powerTools,
-            plantMachines = plantMachines,
-            notes =
-                "Submitted via mobile application"
-        )
+        val request =
+            SiteUpdateRequest(
+                siteId = siteId,
+                staffNames = staffNames,
+                powerTools = powerTools,
+                plantMachines = plantMachines,
+                notes = notes,
+                photos = photos
+            )
 
         return try {
+
             val response =
-                api.submitUpdate(newUpdate)
+                api.submitUpdate(request)
+
+            siteUpdatesList.removeAll {
+                it.id == response.id
+            }
 
             siteUpdatesList.add(response)
 
             Log.d(
                 "OnSiteRepository",
-                "Successfully submitted site update"
+                "Daily update submitted successfully"
             )
 
             response
+
         } catch (e: Exception) {
+
             Log.e(
                 "OnSiteRepository",
-                "Error adding site update",
+                "Error submitting daily update",
                 e
             )
 

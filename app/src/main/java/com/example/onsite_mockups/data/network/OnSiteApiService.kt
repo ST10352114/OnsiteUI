@@ -70,6 +70,36 @@ interface OnSiteApiService {
 
     @POST("site-updates")
     suspend fun submitUpdate(
-        @Body update: SiteUpdate
+        @Body update: SiteUpdateRequest
     ): SiteUpdate
 }
+
+@kotlinx.serialization.Serializable
+data class SiteUpdateRequest(
+    @kotlinx.serialization.SerialName("siteId")
+    val siteId: String,
+
+    @kotlinx.serialization.SerialName("staffNames")
+    val staffNames: String?,
+
+    @kotlinx.serialization.SerialName("powerTools")
+    val powerTools: String?,
+
+    @kotlinx.serialization.SerialName("plantMachines")
+    val plantMachines: String?,
+
+    @kotlinx.serialization.SerialName("notes")
+    val notes: String?,
+
+    @kotlinx.serialization.SerialName("photos")
+    val photos: List<PhotoInput>
+)
+
+@kotlinx.serialization.Serializable
+data class PhotoInput(
+    @kotlinx.serialization.SerialName("photoData")
+    val photoData: String,
+
+    @kotlinx.serialization.SerialName("caption")
+    val caption: String? = null
+)
