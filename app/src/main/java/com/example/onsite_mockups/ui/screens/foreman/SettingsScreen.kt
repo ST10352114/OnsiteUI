@@ -287,8 +287,10 @@ fun SettingsScreen(
                                 text =
                                     currentProfile
                                         ?.fullName
+                                        ?.takeIf { it.isNotBlank() }
                                         ?.take(2)
                                         ?.uppercase()
+                                        ?: currentProfile?.email?.take(2)?.uppercase()
                                         ?: "TM",
                                 color =
                                     Color(0xFFFFC107),
@@ -308,7 +310,8 @@ fun SettingsScreen(
                                 text =
                                     currentProfile
                                         ?.fullName
-                                        ?: "Foreman",
+                                        ?.takeIf { it.isNotBlank() }
+                                        ?: (currentProfile?.email?.substringBefore("@")?.replaceFirstChar { it.uppercase() } ?: "Foreman"),
                                 fontSize = 16.sp,
                                 fontWeight =
                                     FontWeight.Bold,
@@ -491,21 +494,6 @@ fun SettingsScreen(
                         modifier =
                             Modifier.fillMaxWidth()
                     ) {
-                        SettingsSwitchItem(
-                            icon =
-                                Icons.Default.Fingerprint,
-                            title =
-                                "Biometric login",
-                            subtitle =
-                                "Use fingerprint or Face ID",
-                            checked =
-                                biometricLoginEnabled,
-                            onCheckedChange = {
-                                biometricLoginEnabled =
-                                    it
-                            }
-                        )
-
                         SettingsNavigationItem(
                             icon =
                                 Icons.Default.Lock,

@@ -389,7 +389,7 @@ fun SitesAndCrewScreen(
                 items(
                     items = foremen,
                     key = {
-                        it.id ?: it.email
+                        it.id ?: it.email ?: it.hashCode()
                     }
                 ) { foreman ->
 
@@ -399,8 +399,8 @@ fun SitesAndCrewScreen(
                         }
 
                     ForemanManagementCard(
-                        name = foreman.fullName,
-                        detail = foreman.email,
+                        name = foreman.fullName ?: "Unnamed Foreman",
+                        detail = foreman.email ?: "No email",
                         statusText =
                             if (foreman.isActive) {
                                 "Active"
@@ -1218,7 +1218,7 @@ private fun AssignForemanDialog(
                                     Column {
                                         Text(
                                             text =
-                                                foreman.fullName,
+                                                foreman.fullName ?: "Unnamed Foreman",
                                             fontWeight =
                                                 FontWeight.Medium
                                         )
@@ -1226,9 +1226,9 @@ private fun AssignForemanDialog(
                                         Text(
                                             text =
                                                 if (assigned) {
-                                                    "${foreman.email} • Already assigned"
+                                                    "${foreman.email ?: "No email"} • Already assigned"
                                                 } else {
-                                                    foreman.email
+                                                    foreman.email ?: "No email"
                                                 },
                                             fontSize = 12.sp,
                                             color =

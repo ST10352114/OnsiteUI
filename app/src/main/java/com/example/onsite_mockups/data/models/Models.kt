@@ -9,13 +9,13 @@ data class Profile(
     val id: String? = null,
 
     @SerialName("fullName")
-    val fullName: String,
+    val fullName: String? = null,
 
     @SerialName("role")
-    val role: String,
+    val role: String? = null,
 
     @SerialName("email")
-    val email: String,
+    val email: String? = null,
 
     @SerialName("phone")
     val phone: String? = null,

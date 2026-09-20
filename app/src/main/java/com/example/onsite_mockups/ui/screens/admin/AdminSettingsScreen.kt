@@ -261,9 +261,11 @@ fun AdminSettingsScreen(
                                 text =
                                     currentProfile
                                         ?.fullName
+                                        ?.takeIf { it.isNotBlank() }
                                         ?.take(2)
                                         ?.uppercase()
-                                        ?: "AZ",
+                                        ?: currentProfile?.email?.take(2)?.uppercase()
+                                        ?: "AD",
                                 color =
                                     Color(0xFFFFC107),
                                 fontSize = 18.sp,
@@ -282,7 +284,8 @@ fun AdminSettingsScreen(
                                 text =
                                     currentProfile
                                         ?.fullName
-                                        ?: "Aisha Zulu",
+                                        ?.takeIf { it.isNotBlank() }
+                                        ?: (currentProfile?.email?.substringBefore("@")?.replaceFirstChar { it.uppercase() } ?: "Administrator"),
                                 fontSize = 16.sp,
                                 fontWeight =
                                     FontWeight.Bold,
@@ -462,21 +465,6 @@ fun AdminSettingsScreen(
                         modifier =
                             Modifier.fillMaxWidth()
                     ) {
-                        SettingsSwitchItem(
-                            icon =
-                                Icons.Default.Fingerprint,
-                            title =
-                                "Biometric login",
-                            subtitle =
-                                "Use fingerprint or Face ID",
-                            checked =
-                                biometricLoginEnabled,
-                            onCheckedChange = {
-                                biometricLoginEnabled =
-                                    it
-                            }
-                        )
-
                         SettingsNavigationItem(
                             icon =
                                 Icons.Default.Lock,

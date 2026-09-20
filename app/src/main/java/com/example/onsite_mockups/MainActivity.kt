@@ -1,6 +1,7 @@
 
 package com.example.onsite_mockups
 
+import com.example.onsite_mockups.ui.viewmodels.AchievementsViewModel
 import com.example.onsite_mockups.data.network.SupabaseClient
 import com.example.onsite_mockups.ui.screens.shared.NotificationScreen
 import android.Manifest
@@ -93,6 +94,10 @@ class MainActivity : FragmentActivity() {
 
                 val foremanViewModel:
                         ForemanViewModel =
+                    viewModel()
+
+                val achievementsViewModel:
+                        AchievementsViewModel =
                     viewModel()
 
                 val adminViewModel:
@@ -362,10 +367,6 @@ class MainActivity : FragmentActivity() {
 
                                 onLogout = {
 
-                                    OnSiteBiometricManager.disable(
-                                        this@MainActivity
-                                    )
-
                                     authViewModel.logout {
 
                                         navController.navigate(
@@ -462,6 +463,9 @@ class MainActivity : FragmentActivity() {
                         ) {
 
                             AchievementsScreen(
+                                achievementsViewModel =
+                                    achievementsViewModel,
+
                                 onNavigateHome = {
 
                                     navController.navigate(
@@ -525,10 +529,6 @@ class MainActivity : FragmentActivity() {
                                 },
 
                                 onLogout = {
-
-                                    OnSiteBiometricManager.disable(
-                                        this@MainActivity
-                                    )
 
                                     authViewModel.logout {
 

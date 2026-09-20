@@ -1,24 +1,29 @@
 package com.example.onsite_mockups.ui.screens.shared
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -113,21 +118,8 @@ fun LoginScreen(
             return@LaunchedEffect
         }
 
-        val user =
-            SupabaseClient
-                .client
-                .auth
-                .currentUserOrNull()
-
-        if (user == null) {
-            return@LaunchedEffect
-        }
-
         val biometricEnabled =
-            OnSiteBiometricManager.enabledForUser(
-                context = context,
-                userId = user.id
-            )
+            OnSiteBiometricManager.isEnabled(context)
 
         if (!biometricEnabled) {
             return@LaunchedEffect
@@ -333,10 +325,55 @@ fun LoginScreen(
                         strokeWidth = 2.dp
                     )
                 } else {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "Sign In",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+
+            if (OnSiteBiometricManager.isEnabled(context)) {
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                OutlinedButton(
+                    onClick = {
+                        if (activity != null) {
+                            OnSiteBiometricManager.authenticate(
+                                activity = activity,
+                                title = "Unlock OnSite",
+                                subtitle = "Verify your identity to continue",
+                                onSuccess = {
+                                    authViewModel.loginWithBiometrics { profile ->
+                                        onLoginSuccess(profile)
+                                    }
+                                }
+                            )
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, Color(0xFFFF6D00))
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Fingerprint,
+                        contentDescription = "Biometric Login",
+                        tint = Color(0xFFFF6D00),
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Sign In",
+                        text = "Biometric Unlock",
                         fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFFF6D00)
                     )
                 }
             }

@@ -251,7 +251,7 @@ class AuthViewModel : ViewModel() {
                     }
 
                 val profile =
-                    if (existingProfile != null) {
+                    if (existingProfile != null && !existingProfile.fullName.isNullOrBlank()) {
                         existingProfile
                     } else {
                         val fullName =
@@ -335,8 +335,7 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    private suspend fun loadProfileForCurrentUser():
-            Profile? {
+    private suspend fun loadProfileForCurrentUser(): Profile? {
 
         val user =
             auth.currentUserOrNull()
@@ -346,28 +345,61 @@ class AuthViewModel : ViewModel() {
             auth.currentSessionOrNull()
 
         if (session == null) {
+            Log.e(
+                TAG,
+                "No Supabase session available."
+            )
+
             return null
         }
 
-        RetrofitClient.setToken(
-            session.accessToken
+        Log.d(
+            TAG,
+            "Loading profile for Supabase user: ${user.id}"
+        )
+
+        Log.d(
+            TAG,
+            "Supabase session exists: true"
         )
 
         return try {
-            SupabaseClient
-                .client
-                .from("profiles")
-                .select {
-                    filter {
-                        eq(
-                            "id",
-                            user.id
-                        )
+
+            val profiles =
+                SupabaseClient
+                    .client
+                    .from("profiles")
+                    .select {
+                        filter {
+                            eq(
+                                "id",
+                                user.id
+                            )
+                        }
                     }
-                }
-                .decodeSingle<Profile>()
+                    .decodeList<Profile>()
+
+            Log.d(
+                TAG,
+                "Profile query returned ${profiles.size} row(s)."
+            )
+
+            if (profiles.isEmpty()) {
+
+                Log.e(
+                    TAG,
+                    "No profile visible to the Supabase client for user ${user.id}. This is likely an RLS policy issue."
+                )
+
+                null
+
+            } else {
+
+                profiles.first()
+            }
 
         } catch (e: Exception) {
+
             Log.e(
                 TAG,
                 "Could not load profile.",
