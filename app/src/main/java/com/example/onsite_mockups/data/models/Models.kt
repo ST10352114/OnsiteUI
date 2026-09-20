@@ -28,7 +28,9 @@ data class Profile(
 
     @SerialName("createdAt")
     val createdAt: String? = null
-)@Serializable
+)
+
+@Serializable
 data class CreateProfileResponse(
     @SerialName("profile")
     val profile: Profile,
@@ -56,6 +58,18 @@ data class Site(
 
     @SerialName("status")
     val status: String? = null
+)
+
+@Serializable
+data class SiteEditRequest(
+    @SerialName("name")
+    val name: String? = null,
+
+    @SerialName("address")
+    val address: String? = null,
+
+    @SerialName("isActive")
+    val isActive: Boolean? = null
 )
 
 @Serializable

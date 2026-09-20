@@ -90,6 +90,13 @@ fun SitesAndCrewScreen(
     var showAssignForemanDialog by remember {
         mutableStateOf(false)
     }
+    var showEditSiteDialog by remember {
+        mutableStateOf(false)
+    }
+
+    var selectedSiteForEdit by remember {
+        mutableStateOf<Site?>(null)
+    }
 
     val sites by adminViewModel.sites.collectAsState()
     val foremen by adminViewModel.foremen.collectAsState()
@@ -107,6 +114,8 @@ fun SitesAndCrewScreen(
             showAddSiteDialog = false
             showAddForemanDialog = false
             showAssignForemanDialog = false
+            showEditSiteDialog = false
+            selectedSiteForEdit = null
         }
     }
 
@@ -345,7 +354,12 @@ fun SitesAndCrewScreen(
 
                     SiteManagementCard(
                         site = site,
-                        assignments = siteAssignments
+                        assignments = siteAssignments,
+                        onClick = {
+                            adminViewModel.clearMessages()
+                            selectedSiteForEdit = site
+                            showEditSiteDialog = true
+                        }
                     )
                 }
 
@@ -486,7 +500,30 @@ fun SitesAndCrewScreen(
             }
         )
     }
-
+    if (
+        showEditSiteDialog &&
+        selectedSiteForEdit != null
+    ) {
+        EditSiteDialog(
+            site = selectedSiteForEdit!!,
+            isSaving = isSaving,
+            onDismiss = {
+                if (!isSaving) {
+                    showEditSiteDialog = false
+                    selectedSiteForEdit = null
+                    adminViewModel.clearMessages()
+                }
+            },
+            onSubmit = { id, name, address, isActive ->
+                adminViewModel.updateSite(
+                    id = id,
+                    name = name,
+                    address = address,
+                    isActive = isActive
+                )
+            }
+        )
+    }
     if (showAddForemanDialog) {
         AddForemanDialog(
             isSaving = isSaving,
@@ -525,6 +562,165 @@ fun SitesAndCrewScreen(
             }
         )
     }
+}
+
+@Composable
+private fun EditSiteDialog(
+    site: Site,
+    isSaving: Boolean,
+    onDismiss: () -> Unit,
+    onSubmit: (
+        String,
+        String,
+        String,
+        Boolean
+    ) -> Unit
+) {
+    var name by remember(site.id) {
+        mutableStateOf(site.name)
+    }
+
+    var address by remember(site.id) {
+        mutableStateOf(site.address)
+    }
+
+    var isActive by remember(site.id) {
+        mutableStateOf(site.isActive)
+    }
+
+    AlertDialog(
+        onDismissRequest = {
+            if (!isSaving) {
+                onDismiss()
+            }
+        },
+        title = {
+            Text(
+                text = "Edit Site",
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(
+                verticalArrangement =
+                    Arrangement.spacedBy(12.dp)
+            ) {
+
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = {
+                        name = it
+                    },
+                    label = {
+                        Text("Site name")
+                    },
+                    singleLine = true,
+                    enabled = !isSaving,
+                    modifier =
+                        Modifier.fillMaxWidth()
+                )
+
+                OutlinedTextField(
+                    value = address,
+                    onValueChange = {
+                        address = it
+                    },
+                    label = {
+                        Text("Address")
+                    },
+                    minLines = 2,
+                    maxLines = 3,
+                    enabled = !isSaving,
+                    modifier =
+                        Modifier.fillMaxWidth()
+                )
+
+                Row(
+                    modifier =
+                        Modifier.fillMaxWidth(),
+                    verticalAlignment =
+                        Alignment.CenterVertically,
+                    horizontalArrangement =
+                        Arrangement.SpaceBetween
+                ) {
+
+                    Column {
+                        Text(
+                            text =
+                                if (isActive) {
+                                    "Site is active"
+                                } else {
+                                    "Site is closed"
+                                },
+                            fontWeight =
+                                FontWeight.Medium
+                        )
+
+                        Text(
+                            text =
+                                if (isActive) {
+                                    "The site is available for use."
+                                } else {
+                                    "The site is marked as closed."
+                                },
+                            fontSize = 12.sp,
+                            color =
+                                Color(0xFF6C757D)
+                        )
+                    }
+
+                    androidx.compose.material3.Switch(
+                        checked = isActive,
+                        onCheckedChange = {
+                            isActive = it
+                        },
+                        enabled = !isSaving
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onSubmit(
+                        site.id ?: "",
+                        name.trim(),
+                        address.trim(),
+                        isActive
+                    )
+                },
+                enabled =
+                    name.isNotBlank() &&
+                            address.isNotBlank() &&
+                            site.id != null &&
+                            !isSaving,
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor =
+                            Color(0xFFFF6D00)
+                    )
+            ) {
+                if (isSaving) {
+                    CircularProgressIndicator(
+                        modifier =
+                            Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = Color.White
+                    )
+                } else {
+                    Text("Save changes")
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                enabled = !isSaving
+            ) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 @Composable
@@ -1133,11 +1329,14 @@ private fun AssignForemanDialog(
 @Composable
 private fun SiteManagementCard(
     site: Site,
-    assignments: List<SiteForemanAssignment>
+    assignments: List<SiteForemanAssignment>,
+    onClick: () -> Unit
 ) {
     Card(
         modifier =
-            Modifier.fillMaxWidth(),
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick),
         shape =
             RoundedCornerShape(16.dp),
         colors =

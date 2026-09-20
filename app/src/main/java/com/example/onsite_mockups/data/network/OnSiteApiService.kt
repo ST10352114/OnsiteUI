@@ -4,6 +4,7 @@ import com.example.onsite_mockups.data.models.AssignmentRequest
 import com.example.onsite_mockups.data.models.CreateProfileResponse
 import com.example.onsite_mockups.data.models.Profile
 import com.example.onsite_mockups.data.models.Site
+import com.example.onsite_mockups.data.models.SiteEditRequest
 import com.example.onsite_mockups.data.models.SiteForemanAssignment
 import com.example.onsite_mockups.data.models.SiteUpdate
 import retrofit2.http.Body
@@ -38,6 +39,12 @@ interface OnSiteApiService {
     @POST("sites")
     suspend fun createSite(
         @Body site: Site
+    ): Site
+
+    @PATCH("sites/{id}")
+    suspend fun updateSite(
+        @Path("id") id: String,
+        @Body siteUpdate: SiteEditRequest
     ): Site
 
     @GET("assignments")

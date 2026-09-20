@@ -1,9 +1,11 @@
 package com.example.onsite_mockups.data.repository
-import com.example.onsite_mockups.data.models.CreateProfileResponse
+
 import android.util.Log
 import com.example.onsite_mockups.data.models.AssignmentRequest
+import com.example.onsite_mockups.data.models.CreateProfileResponse
 import com.example.onsite_mockups.data.models.Profile
 import com.example.onsite_mockups.data.models.Site
+import com.example.onsite_mockups.data.models.SiteEditRequest
 import com.example.onsite_mockups.data.models.SiteForemanAssignment
 import com.example.onsite_mockups.data.models.SiteUpdate
 import com.example.onsite_mockups.data.network.RetrofitClient
@@ -18,8 +20,10 @@ object OnSiteRepository {
 
     private val profilesList = mutableListOf<Profile>()
     private val sitesList = mutableListOf<Site>()
-    private val assignmentsList = mutableListOf<SiteForemanAssignment>()
-    private val siteUpdatesList = mutableListOf<SiteUpdate>()
+    private val assignmentsList =
+        mutableListOf<SiteForemanAssignment>()
+    private val siteUpdatesList =
+        mutableListOf<SiteUpdate>()
 
     fun logout() {
         currentProfile = null
@@ -61,6 +65,7 @@ object OnSiteRepository {
         role: String,
         email: String
     ): CreateProfileResponse {
+
         val newProfile = Profile(
             fullName = fullName,
             role = role,
@@ -124,6 +129,7 @@ object OnSiteRepository {
         name: String,
         address: String
     ): Site {
+
         val newSite = Site(
             name = name,
             address = address,
@@ -131,7 +137,8 @@ object OnSiteRepository {
         )
 
         return try {
-            val response = api.createSite(newSite)
+            val response =
+                api.createSite(newSite)
 
             sitesList.removeAll {
                 it.id == response.id
@@ -156,9 +163,55 @@ object OnSiteRepository {
         }
     }
 
-    suspend fun getAssignments(): List<SiteForemanAssignment> {
+    suspend fun updateSite(
+        id: String,
+        name: String,
+        address: String,
+        isActive: Boolean
+    ): Site {
+
+        val request = SiteEditRequest(
+            name = name.trim(),
+            address = address.trim(),
+            isActive = isActive
+        )
+
         return try {
-            val response = api.getAssignments()
+            val response =
+                api.updateSite(
+                    id = id,
+                    siteUpdate = request
+                )
+
+            sitesList.removeAll {
+                it.id == response.id
+            }
+
+            sitesList.add(response)
+
+            Log.d(
+                "OnSiteRepository",
+                "Successfully updated site: ${response.name}"
+            )
+
+            response
+        } catch (e: Exception) {
+            Log.e(
+                "OnSiteRepository",
+                "Error updating site",
+                e
+            )
+
+            throw e
+        }
+    }
+
+    suspend fun getAssignments():
+            List<SiteForemanAssignment> {
+
+        return try {
+            val response =
+                api.getAssignments()
 
             assignmentsList.clear()
             assignmentsList.addAll(response)
@@ -184,11 +237,13 @@ object OnSiteRepository {
         siteId: String,
         foremanId: String
     ): SiteForemanAssignment? {
+
         return try {
-            val request = AssignmentRequest(
-                siteId = siteId,
-                foremanId = foremanId
-            )
+            val request =
+                AssignmentRequest(
+                    siteId = siteId,
+                    foremanId = foremanId
+                )
 
             api.createAssignment(request)
 
@@ -197,11 +252,6 @@ object OnSiteRepository {
                 "Foreman $foremanId assigned to site $siteId"
             )
 
-            /*
-             * The POST endpoint only returns siteId and foremanId.
-             * Refresh the complete assignment list so we also get
-             * siteName and foremanName.
-             */
             val refreshedAssignments =
                 getAssignments()
 
@@ -252,7 +302,8 @@ object OnSiteRepository {
 
     suspend fun getSiteUpdates(): List<SiteUpdate> {
         return try {
-            val response = api.getSiteUpdates()
+            val response =
+                api.getSiteUpdates()
 
             siteUpdatesList.clear()
             siteUpdatesList.addAll(response)
@@ -280,22 +331,26 @@ object OnSiteRepository {
         val newUpdate = SiteUpdate(
             id = UUID.randomUUID().toString(),
             siteId = siteId,
-            foremanId = currentProfile?.id ?: "",
+            foremanId =
+                currentProfile?.id ?: "",
             updateDate = "2026-09-18",
             forecastedLabor = headcount + 2,
             bricklayers = headcount / 3,
             plasterers = headcount / 3,
-            pavers = headcount -
-                    (headcount / 3) * 2,
+            pavers =
+                headcount -
+                        (headcount / 3) * 2,
             actualLabor = headcount,
             staffNames = staffNames,
             powerTools = powerTools,
             plantMachines = plantMachines,
-            notes = "Submitted via mobile application"
+            notes =
+                "Submitted via mobile application"
         )
 
         return try {
-            val response = api.submitUpdate(newUpdate)
+            val response =
+                api.submitUpdate(newUpdate)
 
             siteUpdatesList.add(response)
 

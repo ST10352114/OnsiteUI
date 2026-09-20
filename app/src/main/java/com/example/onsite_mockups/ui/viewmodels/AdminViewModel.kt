@@ -33,15 +33,19 @@ class AdminViewModel : ViewModel() {
         _foremen.asStateFlow()
 
     private val _assignments =
-        MutableStateFlow<List<SiteForemanAssignment>>(emptyList())
+        MutableStateFlow<List<SiteForemanAssignment>>(
+            emptyList()
+        )
 
-    val assignments: StateFlow<List<SiteForemanAssignment>> =
+    val assignments:
+            StateFlow<List<SiteForemanAssignment>> =
         _assignments.asStateFlow()
 
     private val _selectedUpdate =
         MutableStateFlow<SiteUpdate?>(null)
 
-    val selectedUpdate: StateFlow<SiteUpdate?> =
+    val selectedUpdate:
+            StateFlow<SiteUpdate?> =
         _selectedUpdate.asStateFlow()
 
     private val _isSaving =
@@ -59,13 +63,15 @@ class AdminViewModel : ViewModel() {
     private val _errorMessage =
         MutableStateFlow<String?>(null)
 
-    val errorMessage: StateFlow<String?> =
+    val errorMessage:
+            StateFlow<String?> =
         _errorMessage.asStateFlow()
 
     private val _successMessage =
         MutableStateFlow<String?>(null)
 
-    val successMessage: StateFlow<String?> =
+    val successMessage:
+            StateFlow<String?> =
         _successMessage.asStateFlow()
 
     fun getForemanForUpdate(
@@ -79,6 +85,7 @@ class AdminViewModel : ViewModel() {
     fun getAssignmentsForSite(
         siteId: String?
     ): List<SiteForemanAssignment> {
+
         if (siteId == null) {
             return emptyList()
         }
@@ -110,36 +117,43 @@ class AdminViewModel : ViewModel() {
                     OnSiteRepository.getSites()
             } catch (e: Exception) {
                 firstError =
-                    e.message ?: "Failed to load sites."
+                    e.message
+                        ?: "Failed to load sites."
             }
 
             try {
                 _foremen.value =
-                    OnSiteRepository.getProfiles("foreman")
+                    OnSiteRepository
+                        .getProfiles("foreman")
             } catch (e: Exception) {
                 if (firstError == null) {
                     firstError =
-                        e.message ?: "Failed to load foremen."
+                        e.message
+                            ?: "Failed to load foremen."
                 }
             }
 
             try {
                 _assignments.value =
-                    OnSiteRepository.getAssignments()
+                    OnSiteRepository
+                        .getAssignments()
             } catch (e: Exception) {
                 if (firstError == null) {
                     firstError =
-                        e.message ?: "Failed to load assignments."
+                        e.message
+                            ?: "Failed to load assignments."
                 }
             }
 
             try {
                 _updates.value =
-                    OnSiteRepository.getSiteUpdates()
+                    OnSiteRepository
+                        .getSiteUpdates()
             } catch (e: Exception) {
                 if (firstError == null) {
                     firstError =
-                        e.message ?: "Failed to load site updates."
+                        e.message
+                            ?: "Failed to load site updates."
                 }
             }
 
@@ -157,10 +171,12 @@ class AdminViewModel : ViewModel() {
                     OnSiteRepository.getSites()
 
                 _foremen.value =
-                    OnSiteRepository.getProfiles("foreman")
+                    OnSiteRepository
+                        .getProfiles("foreman")
 
                 _assignments.value =
-                    OnSiteRepository.getAssignments()
+                    OnSiteRepository
+                        .getAssignments()
             } catch (e: Exception) {
                 _errorMessage.value =
                     e.message
@@ -183,7 +199,8 @@ class AdminViewModel : ViewModel() {
         name: String,
         address: String
     ) {
-        if (name.isBlank() ||
+        if (
+            name.isBlank() ||
             address.isBlank()
         ) {
             _errorMessage.value =
@@ -217,11 +234,61 @@ class AdminViewModel : ViewModel() {
         }
     }
 
+    fun updateSite(
+        id: String?,
+        name: String,
+        address: String,
+        isActive: Boolean
+    ) {
+        if (id.isNullOrBlank()) {
+            _errorMessage.value =
+                "The selected site has no ID."
+            return
+        }
+
+        if (
+            name.isBlank() ||
+            address.isBlank()
+        ) {
+            _errorMessage.value =
+                "Site name and address are required."
+            return
+        }
+
+        viewModelScope.launch {
+            _isSaving.value = true
+            _errorMessage.value = null
+            _successMessage.value = null
+
+            try {
+                OnSiteRepository.updateSite(
+                    id = id,
+                    name = name.trim(),
+                    address = address.trim(),
+                    isActive = isActive
+                )
+
+                _sites.value =
+                    OnSiteRepository.getSites()
+
+                _successMessage.value =
+                    "Site updated successfully."
+            } catch (e: Exception) {
+                _errorMessage.value =
+                    e.message
+                        ?: "Failed to update the site."
+            } finally {
+                _isSaving.value = false
+            }
+        }
+    }
+
     fun addForeman(
         fullName: String,
         email: String
     ) {
-        if (fullName.isBlank() ||
+        if (
+            fullName.isBlank() ||
             email.isBlank()
         ) {
             _errorMessage.value =
@@ -243,13 +310,15 @@ class AdminViewModel : ViewModel() {
                     )
 
                 _foremen.value =
-                    OnSiteRepository.getProfiles("foreman")
+                    OnSiteRepository
+                        .getProfiles("foreman")
 
                 _successMessage.value =
                     "Foreman added successfully.\n\n" +
                             "Name: ${response.profile.fullName}\n" +
                             "Email: ${response.profile.email}\n\n" +
-                            "Temporary password: ${response.temporaryPassword}\n\n" +
+                            "Temporary password: " +
+                            "${response.temporaryPassword}\n\n" +
                             "Give this password to the foreman. " +
                             "They can use it to log in."
             } catch (e: Exception) {
@@ -278,7 +347,8 @@ class AdminViewModel : ViewModel() {
             return
         }
 
-        if (isForemanAssignedToSite(
+        if (
+            isForemanAssignedToSite(
                 siteId,
                 foremanId
             )
@@ -300,7 +370,8 @@ class AdminViewModel : ViewModel() {
                 )
 
                 _assignments.value =
-                    OnSiteRepository.getAssignments()
+                    OnSiteRepository
+                        .getAssignments()
 
                 val assignedForeman =
                     _foremen.value.find {
@@ -314,7 +385,8 @@ class AdminViewModel : ViewModel() {
 
                 _successMessage.value =
                     "Foreman ${assignedForeman?.fullName ?: ""} " +
-                            "assigned to ${assignedSite?.name ?: "site"}."
+                            "assigned to " +
+                            "${assignedSite?.name ?: "site"}."
             } catch (e: Exception) {
                 _errorMessage.value =
                     e.message
@@ -341,7 +413,8 @@ class AdminViewModel : ViewModel() {
                 )
 
                 _assignments.value =
-                    OnSiteRepository.getAssignments()
+                    OnSiteRepository
+                        .getAssignments()
 
                 _successMessage.value =
                     "Foreman assignment removed."
