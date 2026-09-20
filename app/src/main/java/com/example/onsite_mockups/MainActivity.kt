@@ -1,4 +1,5 @@
 package com.example.onsite_mockups
+
 import androidx.compose.runtime.collectAsState
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -60,22 +61,28 @@ class MainActivity : ComponentActivity() {
                     viewModel()
 
                 Scaffold(
-                    modifier = Modifier.fillMaxSize()
+                    modifier =
+                        Modifier.fillMaxSize()
                 ) { innerPadding ->
 
                     NavHost(
                         navController = navController,
                         startDestination = Screen.Splash.route,
-                        modifier = Modifier.padding(innerPadding)
+                        modifier =
+                            Modifier.padding(innerPadding)
                     ) {
 
-                        composable(Screen.Splash.route) {
+                        composable(
+                            Screen.Splash.route
+                        ) {
 
                             SplashScreen(
                                 onNavigateToNext = {
+
                                     navController.navigate(
                                         Screen.Login.route
                                     ) {
+
                                         popUpTo(
                                             Screen.Splash.route
                                         ) {
@@ -86,19 +93,25 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        composable(Screen.Login.route) {
+                        composable(
+                            Screen.Login.route
+                        ) {
 
                             LoginScreen(
-                                authViewModel = authViewModel,
+                                authViewModel =
+                                    authViewModel,
 
-                                onLoginSuccess = { fullName ->
+                                onLoginSuccess = {
 
                                     val profile =
-                                        authViewModel.currentProfile.value
+                                        authViewModel
+                                            .currentProfile
+                                            .value
 
                                     val destination =
                                         if (
-                                            profile?.role == "admin"
+                                            profile?.role ==
+                                            "admin"
                                         ) {
 
                                             adminViewModel
@@ -122,6 +135,7 @@ class MainActivity : ComponentActivity() {
                                     navController.navigate(
                                         destination
                                     ) {
+
                                         popUpTo(
                                             Screen.Login.route
                                         ) {
@@ -141,8 +155,11 @@ class MainActivity : ComponentActivity() {
                                     adminViewModel,
 
                                 onUpdateClick = { updateId ->
+
                                     adminViewModel
-                                        .selectUpdate(updateId)
+                                        .selectUpdate(
+                                            updateId
+                                        )
 
                                     navController.navigate(
                                         Screen.AdminUpdateDetail.route
@@ -150,12 +167,14 @@ class MainActivity : ComponentActivity() {
                                 },
 
                                 onSitesCrewClick = {
+
                                     navController.navigate(
                                         Screen.SitesAndCrew.route
                                     )
                                 },
 
                                 onProfileClick = {
+
                                     navController.navigate(
                                         Screen.AdminSettings.route
                                     )
@@ -172,9 +191,11 @@ class MainActivity : ComponentActivity() {
                                     adminViewModel,
 
                                 onNavigateDashboard = {
+
                                     navController.navigate(
                                         Screen.AdminDashboard.route
                                     ) {
+
                                         popUpTo(
                                             Screen.AdminDashboard.route
                                         ) {
@@ -184,6 +205,7 @@ class MainActivity : ComponentActivity() {
                                 },
 
                                 onNavigateProfile = {
+
                                     navController.navigate(
                                         Screen.AdminSettings.route
                                     )
@@ -200,9 +222,11 @@ class MainActivity : ComponentActivity() {
                                     authViewModel,
 
                                 onNavigateDashboard = {
+
                                     navController.navigate(
                                         Screen.AdminDashboard.route
                                     ) {
+
                                         popUpTo(
                                             Screen.AdminDashboard.route
                                         ) {
@@ -212,9 +236,11 @@ class MainActivity : ComponentActivity() {
                                 },
 
                                 onNavigateSitesCrew = {
+
                                     navController.navigate(
                                         Screen.SitesAndCrew.route
                                     ) {
+
                                         popUpTo(
                                             Screen.SitesAndCrew.route
                                         ) {
@@ -224,10 +250,13 @@ class MainActivity : ComponentActivity() {
                                 },
 
                                 onLogout = {
+
                                     authViewModel.logout {
+
                                         navController.navigate(
                                             Screen.Login.route
                                         ) {
+
                                             popUpTo(
                                                 Screen.AdminDashboard.route
                                             ) {
@@ -259,32 +288,51 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        /*
+                         * FOREMAN HOME
+                         *
+                         * Every site now opens the real Daily Update
+                         * screen. The Daily Update screen itself checks
+                         * whether today's entry already exists.
+                         */
                         composable(
                             Screen.ForemanHome.route
                         ) {
 
                             ForemanHomeScreen(
-                                foremanViewModel = foremanViewModel,
-                                profile = authViewModel.currentProfile.collectAsState().value,
-                                onSiteClick = { siteId ->
-                                    foremanViewModel.selectSite(siteId)
+                                foremanViewModel =
+                                    foremanViewModel,
 
-                                    if (siteId == "palmgrove") {
-                                        navController.navigate(
-                                            Screen.UpdateOffline.route
-                                        )
-                                    } else {
+                                profile =
+                                    authViewModel
+                                        .currentProfile
+                                        .collectAsState()
+                                        .value,
+
+                                onSiteClick = { siteId ->
+
+                                    if (siteId.isNotBlank()) {
+
+                                        foremanViewModel
+                                            .selectSite(
+                                                siteId
+                                            )
+
                                         navController.navigate(
                                             Screen.DailyUpdateForm.route
                                         )
                                     }
                                 },
+
                                 onAchievementsClick = {
+
                                     navController.navigate(
                                         Screen.Achievements.route
                                     )
                                 },
+
                                 onProfileClick = {
+
                                     navController.navigate(
                                         Screen.Settings.route
                                     )
@@ -298,9 +346,11 @@ class MainActivity : ComponentActivity() {
 
                             AchievementsScreen(
                                 onNavigateHome = {
+
                                     navController.navigate(
                                         Screen.ForemanHome.route
                                     ) {
+
                                         popUpTo(
                                             Screen.ForemanHome.route
                                         ) {
@@ -310,6 +360,7 @@ class MainActivity : ComponentActivity() {
                                 },
 
                                 onNavigateProfile = {
+
                                     navController.navigate(
                                         Screen.Settings.route
                                     )
@@ -326,9 +377,11 @@ class MainActivity : ComponentActivity() {
                                     authViewModel,
 
                                 onNavigateHome = {
+
                                     navController.navigate(
                                         Screen.ForemanHome.route
                                     ) {
+
                                         popUpTo(
                                             Screen.ForemanHome.route
                                         ) {
@@ -338,9 +391,11 @@ class MainActivity : ComponentActivity() {
                                 },
 
                                 onNavigateAchievements = {
+
                                     navController.navigate(
                                         Screen.Achievements.route
                                     ) {
+
                                         popUpTo(
                                             Screen.Achievements.route
                                         ) {
@@ -350,9 +405,11 @@ class MainActivity : ComponentActivity() {
                                 },
 
                                 onLogout = {
+
                                     navController.navigate(
                                         Screen.Login.route
                                     ) {
+
                                         popUpTo(
                                             Screen.ForemanHome.route
                                         ) {
@@ -363,6 +420,13 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        /*
+                         * DAILY UPDATE
+                         *
+                         * The selected site has already been set by
+                         * ForemanHomeScreen. DailyUpdateFormScreen then
+                         * loads today's existing update.
+                         */
                         composable(
                             Screen.DailyUpdateForm.route
                         ) {
@@ -376,9 +440,11 @@ class MainActivity : ComponentActivity() {
                                 },
 
                                 onSubmitSuccess = {
+
                                     navController.navigate(
                                         Screen.UpdateSynced.route
                                     ) {
+
                                         popUpTo(
                                             Screen.DailyUpdateForm.route
                                         ) {
@@ -395,9 +461,11 @@ class MainActivity : ComponentActivity() {
 
                             UpdateSyncedScreen(
                                 onBackToSites = {
+
                                     navController.navigate(
                                         Screen.ForemanHome.route
                                     ) {
+
                                         popUpTo(
                                             Screen.ForemanHome.route
                                         ) {
@@ -414,9 +482,11 @@ class MainActivity : ComponentActivity() {
 
                             UpdateOfflineScreen(
                                 onBackToSites = {
+
                                     navController.navigate(
                                         Screen.ForemanHome.route
                                     ) {
+
                                         popUpTo(
                                             Screen.ForemanHome.route
                                         ) {
@@ -432,11 +502,12 @@ class MainActivity : ComponentActivity() {
                         ) {
 
                             Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(
-                                        Color(0xFF14171A)
-                                    ),
+                                modifier =
+                                    Modifier
+                                        .fillMaxSize()
+                                        .background(
+                                            Color(0xFF14171A)
+                                        ),
                                 contentAlignment =
                                     Alignment.Center
                             ) {

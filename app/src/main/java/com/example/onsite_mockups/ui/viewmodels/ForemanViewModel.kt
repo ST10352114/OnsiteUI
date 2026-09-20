@@ -102,8 +102,7 @@ class ForemanViewModel : ViewModel() {
                     OnSiteRepository.getSites()
 
                 _updates.value =
-                    OnSiteRepository
-                        .getSiteUpdates()
+                    OnSiteRepository.getSiteUpdates()
 
             } catch (e: Exception) {
 
@@ -114,21 +113,43 @@ class ForemanViewModel : ViewModel() {
         }
     }
 
+    /*
+     * Select a site and clear the previous site's daily update.
+     *
+     * This is important when moving from Site A -> Site B.
+     * Otherwise Site A's existing update could temporarily remain
+     * visible while Site B is loading.
+     */
     fun selectSite(
         siteId: String
     ) {
 
-        _selectedSite.value =
+        val site =
             _sites.value.find {
                 it.id == siteId
             }
 
-        _todayUpdate.value = null
+        _selectedSite.value =
+            site
+
+        _todayUpdate.value =
+            null
+
+        _errorMessage.value =
+            null
     }
 
+    /*
+     * Fetch ONLY today's update for the selected site.
+     */
     fun loadTodayUpdate(
         siteId: String
     ) {
+
+        if (siteId.isBlank()) {
+            _todayUpdate.value = null
+            return
+        }
 
         viewModelScope.launch {
 
@@ -138,13 +159,23 @@ class ForemanViewModel : ViewModel() {
             _errorMessage.value =
                 null
 
+            /*
+             * Clear the old value before making the request.
+             * This prevents stale data from another site appearing.
+             */
+            _todayUpdate.value =
+                null
+
             try {
 
-                _todayUpdate.value =
+                val existingUpdate =
                     OnSiteRepository
                         .getTodaySiteUpdate(
                             siteId
                         )
+
+                _todayUpdate.value =
+                    existingUpdate
 
             } catch (e: Exception) {
 
@@ -210,6 +241,10 @@ class ForemanViewModel : ViewModel() {
                                 notes
                         )
 
+                /*
+                 * Immediately replace today's cached update with
+                 * the response returned by the API.
+                 */
                 _todayUpdate.value =
                     response
 

@@ -184,24 +184,67 @@ fun DailyUpdateFormScreen(
      * If there is no update, todayUpdate is null and
      * the form stays empty.
      */
-    LaunchedEffect(todayUpdate?.id) {
+    LaunchedEffect(
+        todayUpdate,
+        isLoadingTodayUpdate
+    ) {
+
+        /*
+         * Do not touch the form while the API is still loading.
+         *
+         * This prevents the initial null todayUpdate value from
+         * being mistaken for "there is no update".
+         */
+        if (isLoadingTodayUpdate) {
+            return@LaunchedEffect
+        }
 
         if (hasLoadedExistingUpdate) {
             return@LaunchedEffect
         }
 
+        /*
+         * The API has finished loading and there is no update
+         * for today.
+         *
+         * Make sure the form is empty.
+         */
         val update =
             todayUpdate
                 ?: run {
+
+                    staffList.clear()
+                    powerTools.clear()
+                    plantMachinery.clear()
+                    capturedPhotos.clear()
+
+                    notes = ""
+
                     hasLoadedExistingUpdate = true
+
                     return@LaunchedEffect
                 }
 
+        /*
+         * An update for today exists.
+         *
+         * Load the saved data into the form.
+         */
         staffList.clear()
         powerTools.clear()
         plantMachinery.clear()
         capturedPhotos.clear()
 
+        /*
+         * STAFF
+         *
+         * Stored in Supabase as JSON:
+         *
+         * [
+         *   {"name":"Thabo","job":"bricklayers"},
+         *   {"name":"Thandi","job":"plasterers"}
+         * ]
+         */
         if (!update.staffNames.isNullOrBlank()) {
 
             try {
@@ -211,12 +254,21 @@ fun DailyUpdateFormScreen(
                         update.staffNames
                     )
 
-                staffList.addAll(staff)
+                staffList.addAll(
+                    staff
+                )
 
             } catch (_: Exception) {
             }
         }
 
+        /*
+         * POWER TOOLS
+         *
+         * Stored as:
+         *
+         * ["Angle grinder","Welder","Compressor"]
+         */
         if (!update.powerTools.isNullOrBlank()) {
 
             try {
@@ -227,10 +279,13 @@ fun DailyUpdateFormScreen(
                     )
 
                 powerTools.addAll(
-                    tools.map {
+                    tools.map { toolName ->
+
                         ToolItem(
-                            name = it,
-                            selected = true
+                            name =
+                                toolName,
+                            selected =
+                                true
                         )
                     }
                 )
@@ -239,6 +294,13 @@ fun DailyUpdateFormScreen(
             }
         }
 
+        /*
+         * PLANT & MACHINERY
+         *
+         * Stored as:
+         *
+         * ["Excavator","Tower crane","Concrete mixer"]
+         */
         if (!update.plantMachines.isNullOrBlank()) {
 
             try {
@@ -249,10 +311,13 @@ fun DailyUpdateFormScreen(
                     )
 
                 plantMachinery.addAll(
-                    machines.map {
+                    machines.map { machineName ->
+
                         ToolItem(
-                            name = it,
-                            selected = true
+                            name =
+                                machineName,
+                            selected =
+                                true
                         )
                     }
                 )
@@ -261,15 +326,27 @@ fun DailyUpdateFormScreen(
             }
         }
 
+        /*
+         * PHOTOS
+         *
+         * Photos are already returned as base64 strings.
+         */
         capturedPhotos.addAll(
             update.updatePhotos.map {
                 it.photoData
             }
         )
 
+        /*
+         * NOTES
+         */
         notes =
             update.notes ?: ""
 
+        /*
+         * Prevent the form from being populated again
+         * on normal recomposition.
+         */
         hasLoadedExistingUpdate = true
     }
 
