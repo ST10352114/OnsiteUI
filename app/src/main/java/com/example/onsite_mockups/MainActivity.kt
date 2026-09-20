@@ -1,3 +1,4 @@
+
 package com.example.onsite_mockups
 
 import com.example.onsite_mockups.data.network.SupabaseClient
@@ -63,8 +64,8 @@ class MainActivity : ComponentActivity() {
 
         super.onCreate(
             savedInstanceState
-
         )
+
         SupabaseClient
             .client
             .handleDeeplinks(intent)
@@ -72,9 +73,12 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         requestNotificationPermission()
+
         val isGoogleCallback =
-            intent?.data?.scheme == "onsite" &&
+            savedInstanceState == null &&
+                    intent?.data?.scheme == "onsite" &&
                     intent?.data?.host == "login-callback"
+
         setContent {
 
             OnSiteMockupsTheme {
@@ -111,13 +115,16 @@ class MainActivity : ComponentActivity() {
                                 innerPadding
                             )
                     ) {
+
                         composable(
                             Screen.Notifications.route
                         ) {
+
                             NotificationScreen(
                                 onBackClick = {
                                     navController.popBackStack()
                                 },
+
                                 onNotificationClick = { notification ->
 
                                     val data =
@@ -125,20 +132,26 @@ class MainActivity : ComponentActivity() {
                                             kotlinx.serialization.json.Json
                                                 .decodeFromString<
                                                         Map<String, String>
-                                                        >(notification.data)
+                                                        >(
+                                                    notification.data
+                                                )
                                         } catch (_: Exception) {
                                             emptyMap()
                                         }
 
-                                    when (notification.type) {
+                                    when (
+                                        notification.type
+                                    ) {
 
                                         "daily_report_submitted" -> {
+
                                             val updateId =
                                                 data["update_id"]
 
                                             if (
                                                 !updateId.isNullOrBlank()
                                             ) {
+
                                                 adminViewModel
                                                     .selectUpdate(
                                                         updateId
@@ -151,12 +164,14 @@ class MainActivity : ComponentActivity() {
                                         }
 
                                         "site_assigned" -> {
+
                                             navController.popBackStack()
                                         }
                                     }
                                 }
                             )
                         }
+
                         composable(
                             Screen.Splash.route
                         ) {
@@ -184,22 +199,31 @@ class MainActivity : ComponentActivity() {
                         ) {
 
                             LoginScreen(
-                                authViewModel = authViewModel,
-                                isGoogleCallback = isGoogleCallback,
+                                authViewModel =
+                                    authViewModel,
+
+                                isGoogleCallback =
+                                    isGoogleCallback,
 
                                 onLoginSuccess = { profile ->
 
                                     val destination =
-                                        if (profile.role == "admin") {
+                                        if (
+                                            profile.role ==
+                                            "admin"
+                                        ) {
 
-                                            adminViewModel.loadAdminData()
+                                            adminViewModel
+                                                .loadAdminData()
 
                                             Screen.AdminDashboard.route
 
                                         } else {
 
                                             foremanViewModel
-                                                .setForemanProfile(profile)
+                                                .setForemanProfile(
+                                                    profile
+                                                )
 
                                             foremanViewModel
                                                 .loadForemanData()
@@ -207,9 +231,15 @@ class MainActivity : ComponentActivity() {
                                             Screen.ForemanHome.route
                                         }
 
-                                    navController.navigate(destination) {
-                                        popUpTo(Screen.Login.route) {
-                                            inclusive = true
+                                    navController.navigate(
+                                        destination
+                                    ) {
+
+                                        popUpTo(
+                                            Screen.Login.route
+                                        ) {
+                                            inclusive =
+                                                true
                                         }
                                     }
                                 }
@@ -221,12 +251,15 @@ class MainActivity : ComponentActivity() {
                         ) {
 
                             AdminDashboardScreen(
-                                adminViewModel = adminViewModel,
+                                adminViewModel =
+                                    adminViewModel,
 
                                 onUpdateClick = { updateId ->
 
                                     adminViewModel
-                                        .selectUpdate(updateId)
+                                        .selectUpdate(
+                                            updateId
+                                        )
 
                                     navController.navigate(
                                         Screen.AdminUpdateDetail.route
@@ -234,18 +267,21 @@ class MainActivity : ComponentActivity() {
                                 },
 
                                 onSitesCrewClick = {
+
                                     navController.navigate(
                                         Screen.SitesAndCrew.route
                                     )
                                 },
 
                                 onProfileClick = {
+
                                     navController.navigate(
                                         Screen.AdminSettings.route
                                     )
                                 },
 
                                 onNotificationClick = {
+
                                     navController.navigate(
                                         Screen.Notifications.route
                                     )
@@ -330,11 +366,14 @@ class MainActivity : ComponentActivity() {
                                         navController.navigate(
                                             Screen.Login.route
                                         ) {
-                                            popUpTo(
-                                                Screen.ForemanHome.route
-                                            ) {
-                                                inclusive = true
+
+                                            popUpTo(0) {
+                                                inclusive =
+                                                    true
                                             }
+
+                                            launchSingleTop =
+                                                true
                                         }
                                     }
                                 }
@@ -366,7 +405,8 @@ class MainActivity : ComponentActivity() {
                         ) {
 
                             ForemanHomeScreen(
-                                foremanViewModel = foremanViewModel,
+                                foremanViewModel =
+                                    foremanViewModel,
 
                                 profile =
                                     authViewModel
@@ -376,10 +416,14 @@ class MainActivity : ComponentActivity() {
 
                                 onSiteClick = { siteId ->
 
-                                    if (siteId.isNotBlank()) {
+                                    if (
+                                        siteId.isNotBlank()
+                                    ) {
 
                                         foremanViewModel
-                                            .selectSite(siteId)
+                                            .selectSite(
+                                                siteId
+                                            )
 
                                         navController.navigate(
                                             Screen.DailyUpdateForm.route
@@ -388,18 +432,21 @@ class MainActivity : ComponentActivity() {
                                 },
 
                                 onAchievementsClick = {
+
                                     navController.navigate(
                                         Screen.Achievements.route
                                     )
                                 },
 
                                 onProfileClick = {
+
                                     navController.navigate(
                                         Screen.Settings.route
                                     )
                                 },
 
                                 onNotificationClick = {
+
                                     navController.navigate(
                                         Screen.Notifications.route
                                     )
@@ -476,14 +523,18 @@ class MainActivity : ComponentActivity() {
 
                                 onLogout = {
 
-                                    navController.navigate(
-                                        Screen.Login.route
-                                    ) {
+                                    authViewModel.logout {
 
-                                        popUpTo(
-                                            Screen.ForemanHome.route
+                                        navController.navigate(
+                                            Screen.Login.route
                                         ) {
-                                            inclusive =
+
+                                            popUpTo(0) {
+                                                inclusive =
+                                                    true
+                                            }
+
+                                            launchSingleTop =
                                                 true
                                         }
                                     }
@@ -636,3 +687,4 @@ class MainActivity : ComponentActivity() {
         )
     }
 }
+
