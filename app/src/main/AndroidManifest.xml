@@ -1,10 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Internet access -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-permission
+        android:name="android.permission.INTERNET" />
 
-    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Camera access -->
+    <uses-permission
+        android:name="android.permission.CAMERA" />
+
+    <!-- Android 13+ notification permission -->
+    <uses-permission
+        android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:allowBackup="true"
@@ -15,6 +27,24 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.OnSiteMockups">
+
+        <!--
+            Firebase Messaging service.
+
+            This receives FCM messages when the app is
+            running in the background.
+        -->
+        <service
+            android:name=".notifications.OnSiteFirebaseMessagingService"
+            android:exported="false"
+            tools:ignore="Instantiatable">
+
+            <intent-filter>
+                <action
+                    android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+
+        </service>
 
         <activity
             android:name=".MainActivity"

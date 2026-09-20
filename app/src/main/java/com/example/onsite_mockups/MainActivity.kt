@@ -1,7 +1,10 @@
 package com.example.onsite_mockups
 
-import androidx.compose.runtime.collectAsState
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -11,15 +14,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.lifecycle.viewmodel.compose.viewModel
-
 import com.example.onsite_mockups.ui.navigation.Screen
 import com.example.onsite_mockups.ui.screens.admin.AdminDashboardScreen
 import com.example.onsite_mockups.ui.screens.admin.AdminSettingsScreen
@@ -40,24 +45,44 @@ import com.example.onsite_mockups.ui.viewmodels.ForemanViewModel
 
 class MainActivity : ComponentActivity() {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    companion object {
+
+        private const val NOTIFICATION_PERMISSION_REQUEST_CODE =
+            1001
+
+        private const val TAG =
+            "OnSiteNotifications"
+    }
+
+    override fun onCreate(
+        savedInstanceState: Bundle?
+    ) {
+
+        super.onCreate(
+            savedInstanceState
+        )
 
         enableEdgeToEdge()
 
+        requestNotificationPermission()
+
         setContent {
+
             OnSiteMockupsTheme {
 
                 val navController =
                     rememberNavController()
 
-                val authViewModel: AuthViewModel =
+                val authViewModel:
+                        AuthViewModel =
                     viewModel()
 
-                val foremanViewModel: ForemanViewModel =
+                val foremanViewModel:
+                        ForemanViewModel =
                     viewModel()
 
-                val adminViewModel: AdminViewModel =
+                val adminViewModel:
+                        AdminViewModel =
                     viewModel()
 
                 Scaffold(
@@ -66,10 +91,16 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
 
                     NavHost(
-                        navController = navController,
-                        startDestination = Screen.Splash.route,
+                        navController =
+                            navController,
+
+                        startDestination =
+                            Screen.Splash.route,
+
                         modifier =
-                            Modifier.padding(innerPadding)
+                            Modifier.padding(
+                                innerPadding
+                            )
                     ) {
 
                         composable(
@@ -86,7 +117,8 @@ class MainActivity : ComponentActivity() {
                                         popUpTo(
                                             Screen.Splash.route
                                         ) {
-                                            inclusive = true
+                                            inclusive =
+                                                true
                                         }
                                     }
                                 }
@@ -139,7 +171,8 @@ class MainActivity : ComponentActivity() {
                                         popUpTo(
                                             Screen.Login.route
                                         ) {
-                                            inclusive = true
+                                            inclusive =
+                                                true
                                         }
                                     }
                                 }
@@ -154,7 +187,8 @@ class MainActivity : ComponentActivity() {
                                 adminViewModel =
                                     adminViewModel,
 
-                                onUpdateClick = { updateId ->
+                                onUpdateClick = {
+                                        updateId ->
 
                                     adminViewModel
                                         .selectUpdate(
@@ -199,7 +233,8 @@ class MainActivity : ComponentActivity() {
                                         popUpTo(
                                             Screen.AdminDashboard.route
                                         ) {
-                                            inclusive = true
+                                            inclusive =
+                                                true
                                         }
                                     }
                                 },
@@ -230,7 +265,8 @@ class MainActivity : ComponentActivity() {
                                         popUpTo(
                                             Screen.AdminDashboard.route
                                         ) {
-                                            inclusive = true
+                                            inclusive =
+                                                true
                                         }
                                     }
                                 },
@@ -244,7 +280,8 @@ class MainActivity : ComponentActivity() {
                                         popUpTo(
                                             Screen.SitesAndCrew.route
                                         ) {
-                                            inclusive = true
+                                            inclusive =
+                                                true
                                         }
                                     }
                                 },
@@ -260,7 +297,8 @@ class MainActivity : ComponentActivity() {
                                             popUpTo(
                                                 Screen.AdminDashboard.route
                                             ) {
-                                                inclusive = true
+                                                inclusive =
+                                                    true
                                             }
                                         }
                                     }
@@ -288,13 +326,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        /*
-                         * FOREMAN HOME
-                         *
-                         * Every site now opens the real Daily Update
-                         * screen. The Daily Update screen itself checks
-                         * whether today's entry already exists.
-                         */
                         composable(
                             Screen.ForemanHome.route
                         ) {
@@ -309,9 +340,12 @@ class MainActivity : ComponentActivity() {
                                         .collectAsState()
                                         .value,
 
-                                onSiteClick = { siteId ->
+                                onSiteClick = {
+                                        siteId ->
 
-                                    if (siteId.isNotBlank()) {
+                                    if (
+                                        siteId.isNotBlank()
+                                    ) {
 
                                         foremanViewModel
                                             .selectSite(
@@ -354,7 +388,8 @@ class MainActivity : ComponentActivity() {
                                         popUpTo(
                                             Screen.ForemanHome.route
                                         ) {
-                                            inclusive = true
+                                            inclusive =
+                                                true
                                         }
                                     }
                                 },
@@ -385,7 +420,8 @@ class MainActivity : ComponentActivity() {
                                         popUpTo(
                                             Screen.ForemanHome.route
                                         ) {
-                                            inclusive = true
+                                            inclusive =
+                                                true
                                         }
                                     }
                                 },
@@ -399,7 +435,8 @@ class MainActivity : ComponentActivity() {
                                         popUpTo(
                                             Screen.Achievements.route
                                         ) {
-                                            inclusive = true
+                                            inclusive =
+                                                true
                                         }
                                     }
                                 },
@@ -413,20 +450,14 @@ class MainActivity : ComponentActivity() {
                                         popUpTo(
                                             Screen.ForemanHome.route
                                         ) {
-                                            inclusive = true
+                                            inclusive =
+                                                true
                                         }
                                     }
                                 }
                             )
                         }
 
-                        /*
-                         * DAILY UPDATE
-                         *
-                         * The selected site has already been set by
-                         * ForemanHomeScreen. DailyUpdateFormScreen then
-                         * loads today's existing update.
-                         */
                         composable(
                             Screen.DailyUpdateForm.route
                         ) {
@@ -448,7 +479,8 @@ class MainActivity : ComponentActivity() {
                                         popUpTo(
                                             Screen.DailyUpdateForm.route
                                         ) {
-                                            inclusive = true
+                                            inclusive =
+                                                true
                                         }
                                     }
                                 }
@@ -469,7 +501,8 @@ class MainActivity : ComponentActivity() {
                                         popUpTo(
                                             Screen.ForemanHome.route
                                         ) {
-                                            inclusive = true
+                                            inclusive =
+                                                true
                                         }
                                     }
                                 }
@@ -490,7 +523,8 @@ class MainActivity : ComponentActivity() {
                                         popUpTo(
                                             Screen.ForemanHome.route
                                         ) {
-                                            inclusive = true
+                                            inclusive =
+                                                true
                                         }
                                     }
                                 }
@@ -506,16 +540,24 @@ class MainActivity : ComponentActivity() {
                                     Modifier
                                         .fillMaxSize()
                                         .background(
-                                            Color(0xFF14171A)
+                                            Color(
+                                                0xFF14171A
+                                            )
                                         ),
+
                                 contentAlignment =
                                     Alignment.Center
                             ) {
 
                                 Text(
-                                    text = "Placeholder",
-                                    color = Color.White,
-                                    fontSize = 18.sp
+                                    text =
+                                        "Placeholder",
+
+                                    color =
+                                        Color.White,
+
+                                    fontSize =
+                                        18.sp
                                 )
                             }
                         }
@@ -523,5 +565,41 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    private fun requestNotificationPermission() {
+
+        if (
+            Build.VERSION.SDK_INT <
+            Build.VERSION_CODES.TIRAMISU
+        ) {
+            return
+        }
+
+        val permission =
+            Manifest.permission.POST_NOTIFICATIONS
+
+        val alreadyGranted =
+            ContextCompat.checkSelfPermission(
+                this,
+                permission
+            ) ==
+                    PackageManager.PERMISSION_GRANTED
+
+        if (alreadyGranted) {
+
+            Log.d(
+                TAG,
+                "Notification permission already granted."
+            )
+
+            return
+        }
+
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(permission),
+            NOTIFICATION_PERMISSION_REQUEST_CODE
+        )
     }
 }
