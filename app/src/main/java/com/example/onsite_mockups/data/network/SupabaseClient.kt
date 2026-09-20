@@ -14,7 +14,10 @@ object SupabaseClient {
         supabaseUrl = SUPABASE_URL,
         supabaseKey = SUPABASE_ANON_KEY
     ) {
-        install(Auth)
+        install(Auth) {
+            host = "login-callback"
+            scheme = "onsite"
+        }
         install(Postgrest)
         
         defaultSerializer = KotlinXSerializer(Json {
