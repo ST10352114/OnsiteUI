@@ -172,4 +172,53 @@ data class StaffMember(
 
     @SerialName("job")
     val job: String
+)@Serializable
+data class NotificationModel(
+    @SerialName("id")
+    val id: String,
+
+    @SerialName("type")
+    val type: String,
+
+    @SerialName("title")
+    val title: String,
+
+    @SerialName("message")
+    val message: String,
+
+    @SerialName("data")
+    val data: String = "{}",
+
+    @SerialName("isRead")
+    val isRead: Boolean = false,
+
+    @SerialName("createdAt")
+    val createdAt: String
+)
+
+@Serializable
+data class UnreadNotificationCount(
+    @SerialName("count")
+    val count: Int
+)
+
+@Serializable
+data class NotificationPreferences(
+    @SerialName("pushEnabled")
+    val pushEnabled: Boolean
+)
+
+@Serializable
+data class NotificationPreferenceRequest(
+    @SerialName("pushEnabled")
+    val pushEnabled: Boolean
+)
+
+@Serializable
+data class DeviceTokenRequest(
+    @SerialName("token")
+    val token: String,
+
+    @SerialName("platform")
+    val platform: String = "android"
 )

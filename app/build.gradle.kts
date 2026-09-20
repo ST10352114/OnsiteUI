@@ -50,6 +50,8 @@ dependencies {
         )
     )
 
+
+
     implementation(
         libs.androidx.activity.compose
     )
@@ -145,6 +147,10 @@ dependencies {
 
     implementation(
         "com.google.firebase:firebase-messaging"
+    )
+
+    implementation(
+        "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2"
     )
 
     testImplementation(

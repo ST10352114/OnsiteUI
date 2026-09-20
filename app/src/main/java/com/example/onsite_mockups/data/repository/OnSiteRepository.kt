@@ -1,5 +1,8 @@
 package com.example.onsite_mockups.data.repository
-
+import com.example.onsite_mockups.data.models.DeviceTokenRequest
+import com.example.onsite_mockups.data.models.NotificationModel
+import com.example.onsite_mockups.data.models.NotificationPreferenceRequest
+import com.example.onsite_mockups.data.models.NotificationPreferences
 import android.util.Log
 import com.example.onsite_mockups.data.models.AssignmentRequest
 import com.example.onsite_mockups.data.models.CreateProfileResponse
@@ -35,6 +38,182 @@ object OnSiteRepository {
 
     private val siteUpdatesList =
         mutableListOf<SiteUpdate>()
+
+    suspend fun registerDeviceToken(
+        token: String
+    ) {
+        if (token.isBlank()) {
+            return
+        }
+
+        try {
+            api.registerDeviceToken(
+                DeviceTokenRequest(
+                    token = token,
+                    platform = "android"
+                )
+            )
+
+            Log.d(
+                "OnSiteRepository",
+                "FCM device token registered."
+            )
+
+        } catch (e: Exception) {
+
+            Log.e(
+                "OnSiteRepository",
+                "Failed to register FCM device token.",
+                e
+            )
+
+            throw e
+        }
+    }
+
+    suspend fun deactivateDeviceToken(
+        token: String
+    ) {
+        if (token.isBlank()) {
+            return
+        }
+
+        try {
+            api.deactivateDeviceToken(
+                token
+            )
+
+        } catch (e: Exception) {
+
+            Log.e(
+                "OnSiteRepository",
+                "Failed to deactivate FCM token.",
+                e
+            )
+        }
+    }
+
+    suspend fun getNotifications():
+            List<NotificationModel> {
+
+        return try {
+
+            api.getNotifications()
+
+        } catch (e: Exception) {
+
+            Log.e(
+                "OnSiteRepository",
+                "Failed to load notifications.",
+                e
+            )
+
+            throw e
+        }
+    }
+
+    suspend fun getUnreadNotificationCount():
+            Int {
+
+        return try {
+
+            api.getUnreadNotificationCount()
+                .count
+
+        } catch (e: Exception) {
+
+            Log.e(
+                "OnSiteRepository",
+                "Failed to load unread notification count.",
+                e
+            )
+
+            throw e
+        }
+    }
+
+    suspend fun markNotificationRead(
+        notificationId: String
+    ) {
+
+        try {
+
+            api.markNotificationRead(
+                notificationId
+            )
+
+        } catch (e: Exception) {
+
+            Log.e(
+                "OnSiteRepository",
+                "Failed to mark notification as read.",
+                e
+            )
+
+            throw e
+        }
+    }
+
+    suspend fun markAllNotificationsRead() {
+
+        try {
+
+            api.markAllNotificationsRead()
+
+        } catch (e: Exception) {
+
+            Log.e(
+                "OnSiteRepository",
+                "Failed to mark all notifications as read.",
+                e
+            )
+
+            throw e
+        }
+    }
+
+    suspend fun getNotificationPreferences():
+            NotificationPreferences {
+
+        return try {
+
+            api.getNotificationPreferences()
+
+        } catch (e: Exception) {
+
+            Log.e(
+                "OnSiteRepository",
+                "Failed to load notification preferences.",
+                e
+            )
+
+            throw e
+        }
+    }
+
+    suspend fun updateNotificationPreferences(
+        enabled: Boolean
+    ) {
+
+        try {
+
+            api.updateNotificationPreferences(
+                NotificationPreferenceRequest(
+                    pushEnabled = enabled
+                )
+            )
+
+        } catch (e: Exception) {
+
+            Log.e(
+                "OnSiteRepository",
+                "Failed to update notification preference.",
+                e
+            )
+
+            throw e
+        }
+    }
 
     fun setCurrentProfile(
         profile: Profile?

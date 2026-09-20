@@ -13,8 +13,12 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.example.onsite_mockups.MainActivity
 import com.example.onsite_mockups.R
+import com.example.onsite_mockups.data.repository.OnSiteRepository
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class OnSiteFirebaseMessagingService :
     FirebaseMessagingService() {
@@ -35,47 +39,74 @@ class OnSiteFirebaseMessagingService :
     }
 
     override fun onCreate() {
+
         super.onCreate()
 
         createNotificationChannel()
     }
 
-    override fun onNewToken(token: String) {
+    override fun onNewToken(
+        token: String
+    ) {
+
         super.onNewToken(token)
 
         Log.d(
             TAG,
-            "FCM token received: $token"
+            "FCM token refreshed."
         )
 
-        /*
-         * We will send this token to the
-         * ASP.NET API in the next stage.
-         *
-         * For now, logging it allows us to
-         * verify that Firebase is working.
-         */
+        CoroutineScope(
+            Dispatchers.IO
+        ).launch {
+
+            try {
+
+                OnSiteRepository
+                    .registerDeviceToken(
+                        token
+                    )
+
+                Log.d(
+                    TAG,
+                    "Refreshed FCM token registered."
+                )
+
+            } catch (e: Exception) {
+
+                Log.e(
+                    TAG,
+                    "Could not register refreshed FCM token.",
+                    e
+                )
+            }
+        }
     }
 
     override fun onMessageReceived(
         remoteMessage: RemoteMessage
     ) {
+
         super.onMessageReceived(
             remoteMessage
         )
 
         Log.d(
             TAG,
-            "FCM message received"
+            "FCM message received."
         )
 
         val title =
-            remoteMessage.notification?.title
+            remoteMessage
+                .notification
+                ?.title
                 ?: remoteMessage.data["title"]
                 ?: "OnSite"
 
         val message =
-            remoteMessage.notification?.body
+            remoteMessage
+                .notification
+                ?.body
                 ?: remoteMessage.data["message"]
                 ?: "You have a new notification."
 
@@ -124,12 +155,8 @@ class OnSiteFirebaseMessagingService :
                     Intent.FLAG_ACTIVITY_NEW_TASK or
                             Intent.FLAG_ACTIVITY_CLEAR_TOP
 
-                /*
-                 * These values will later be used
-                 * for deep-linking to specific
-                 * site reports and assignments.
-                 */
-                data.forEach { entry ->
+                data.forEach {
+                        entry ->
 
                     putExtra(
                         entry.key,
@@ -141,17 +168,21 @@ class OnSiteFirebaseMessagingService :
         val pendingIntent =
             PendingIntent.getActivity(
                 this,
-                0,
+                System.currentTimeMillis()
+                    .toInt(),
+
                 intent,
+
                 PendingIntent.FLAG_UPDATE_CURRENT or
                         PendingIntent.FLAG_IMMUTABLE
             )
 
         val notification =
-            NotificationCompat.Builder(
-                this,
-                CHANNEL_ID
-            )
+            NotificationCompat
+                .Builder(
+                    this,
+                    CHANNEL_ID
+                )
                 .setSmallIcon(
                     R.mipmap.ic_launcher
                 )
@@ -162,11 +193,15 @@ class OnSiteFirebaseMessagingService :
                     message
                 )
                 .setStyle(
-                    NotificationCompat.BigTextStyle()
-                        .bigText(message)
+                    NotificationCompat
+                        .BigTextStyle()
+                        .bigText(
+                            message
+                        )
                 )
                 .setPriority(
-                    NotificationCompat.PRIORITY_HIGH
+                    NotificationCompat
+                        .PRIORITY_HIGH
                 )
                 .setAutoCancel(
                     true
@@ -201,7 +236,8 @@ class OnSiteFirebaseMessagingService :
             NotificationChannel(
                 CHANNEL_ID,
                 CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_HIGH
+                NotificationManager
+                    .IMPORTANCE_HIGH
             ).apply {
 
                 description =
