@@ -142,6 +142,7 @@ fun DailyUpdateFormScreen(
         ) { bitmap ->
 
             if (bitmap != null) {
+
                 capturedPhotos.add(
                     bitmapToBase64(bitmap)
                 )
@@ -155,96 +156,73 @@ fun DailyUpdateFormScreen(
         ) { granted ->
 
             if (granted) {
+
                 cameraLauncher.launch(null)
+
             } else {
+
                 showCameraPermissionMessage = true
             }
         }
 
     /*
-     * Load today's update whenever the selected site changes.
+     * Load the selected site's update.
+     *
+     * The ViewModel function is suspend, so this effect waits
+     * until the API call has completely finished.
      */
     LaunchedEffect(selectedSite?.id) {
 
         val siteId =
             selectedSite?.id
 
-        if (!siteId.isNullOrBlank()) {
-
-            hasLoadedExistingUpdate = false
-
-            foremanViewModel
-                .loadTodayUpdate(siteId)
-        }
-    }
-
-    /*
-     * Populate the form from today's existing update.
-     *
-     * If there is no update, todayUpdate is null and
-     * the form stays empty.
-     */
-    LaunchedEffect(
-        todayUpdate,
-        isLoadingTodayUpdate
-    ) {
-
-        /*
-         * Do not touch the form while the API is still loading.
-         *
-         * This prevents the initial null todayUpdate value from
-         * being mistaken for "there is no update".
-         */
-        if (isLoadingTodayUpdate) {
+        if (siteId.isNullOrBlank()) {
             return@LaunchedEffect
         }
 
-        if (hasLoadedExistingUpdate) {
-            return@LaunchedEffect
-        }
+        hasLoadedExistingUpdate =
+            false
 
         /*
-         * The API has finished loading and there is no update
-         * for today.
-         *
-         * Make sure the form is empty.
-         */
-        val update =
-            todayUpdate
-                ?: run {
-
-                    staffList.clear()
-                    powerTools.clear()
-                    plantMachinery.clear()
-                    capturedPhotos.clear()
-
-                    notes = ""
-
-                    hasLoadedExistingUpdate = true
-
-                    return@LaunchedEffect
-                }
-
-        /*
-         * An update for today exists.
-         *
-         * Load the saved data into the form.
+         * Clear the previous site's form immediately.
          */
         staffList.clear()
         powerTools.clear()
         plantMachinery.clear()
         capturedPhotos.clear()
+        notes = ""
 
         /*
-         * STAFF
+         * IMPORTANT:
          *
-         * Stored in Supabase as JSON:
+         * This waits for the API request.
          *
-         * [
-         *   {"name":"Thabo","job":"bricklayers"},
-         *   {"name":"Thandi","job":"plasterers"}
-         * ]
+         * It does NOT rely on a second LaunchedEffect watching
+         * todayUpdate/isLoadingTodayUpdate.
          */
+        val update =
+            foremanViewModel
+                .loadTodayUpdate(
+                    siteId
+                )
+
+        /*
+         * No update exists for today.
+         *
+         * Leave the form empty.
+         */
+        if (update == null) {
+
+            hasLoadedExistingUpdate =
+                true
+
+            return@LaunchedEffect
+        }
+
+        /*
+         * Existing update found.
+         */
+
         if (!update.staffNames.isNullOrBlank()) {
 
             try {
@@ -258,17 +236,16 @@ fun DailyUpdateFormScreen(
                     staff
                 )
 
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+
+                android.util.Log.e(
+                    "DailyUpdateForm",
+                    "Failed to parse staffNames",
+                    e
+                )
             }
         }
 
-        /*
-         * POWER TOOLS
-         *
-         * Stored as:
-         *
-         * ["Angle grinder","Welder","Compressor"]
-         */
         if (!update.powerTools.isNullOrBlank()) {
 
             try {
@@ -290,17 +267,16 @@ fun DailyUpdateFormScreen(
                     }
                 )
 
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+
+                android.util.Log.e(
+                    "DailyUpdateForm",
+                    "Failed to parse powerTools",
+                    e
+                )
             }
         }
 
-        /*
-         * PLANT & MACHINERY
-         *
-         * Stored as:
-         *
-         * ["Excavator","Tower crane","Concrete mixer"]
-         */
         if (!update.plantMachines.isNullOrBlank()) {
 
             try {
@@ -322,14 +298,18 @@ fun DailyUpdateFormScreen(
                     }
                 )
 
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+
+                android.util.Log.e(
+                    "DailyUpdateForm",
+                    "Failed to parse plantMachines",
+                    e
+                )
             }
         }
 
         /*
-         * PHOTOS
-         *
-         * Photos are already returned as base64 strings.
+         * Existing photos are already returned as base64.
          */
         capturedPhotos.addAll(
             update.updatePhotos.map {
@@ -337,17 +317,11 @@ fun DailyUpdateFormScreen(
             }
         )
 
-        /*
-         * NOTES
-         */
         notes =
             update.notes ?: ""
 
-        /*
-         * Prevent the form from being populated again
-         * on normal recomposition.
-         */
-        hasLoadedExistingUpdate = true
+        hasLoadedExistingUpdate =
+            true
     }
 
     val bricklayers =
@@ -404,7 +378,8 @@ fun DailyUpdateFormScreen(
             ) {
 
                 IconButton(
-                    onClick = onBackClick
+                    onClick =
+                        onBackClick
                 ) {
 
                     Icon(
@@ -478,7 +453,9 @@ fun DailyUpdateFormScreen(
                             horizontal = 20.dp
                         ),
                 verticalArrangement =
-                    Arrangement.spacedBy(20.dp)
+                    Arrangement.spacedBy(
+                        20.dp
+                    )
             ) {
 
                 item {
@@ -613,6 +590,7 @@ fun DailyUpdateFormScreen(
 
                                     IconButton(
                                         onClick = {
+
                                             staffList.removeAt(
                                                 index
                                             )
@@ -642,7 +620,9 @@ fun DailyUpdateFormScreen(
                                 isDashed =
                                     true,
                                 onClick = {
-                                    showAddStaffDialog = true
+
+                                    showAddStaffDialog =
+                                        true
                                 }
                             )
                         }
@@ -714,6 +694,7 @@ fun DailyUpdateFormScreen(
 
                                     IconButton(
                                         onClick = {
+
                                             powerTools.removeAt(
                                                 index
                                             )
@@ -741,7 +722,9 @@ fun DailyUpdateFormScreen(
                         text =
                             "Add power tool",
                         onClick = {
-                            showAddToolDialog = true
+
+                            showAddToolDialog =
+                                true
                         }
                     )
                 }
@@ -811,6 +794,7 @@ fun DailyUpdateFormScreen(
 
                                     IconButton(
                                         onClick = {
+
                                             plantMachinery.removeAt(
                                                 index
                                             )
@@ -838,7 +822,9 @@ fun DailyUpdateFormScreen(
                         text =
                             "Add plant or machinery",
                         onClick = {
-                            showAddPlantDialog = true
+
+                            showAddPlantDialog =
+                                true
                         }
                     )
                 }
@@ -857,7 +843,9 @@ fun DailyUpdateFormScreen(
 
                     Row(
                         horizontalArrangement =
-                            Arrangement.spacedBy(12.dp)
+                            Arrangement.spacedBy(
+                                12.dp
+                            )
                     ) {
 
                         capturedPhotos.forEachIndexed {
@@ -870,6 +858,7 @@ fun DailyUpdateFormScreen(
                                 label =
                                     "Photo ${index + 1}",
                                 onRemove = {
+
                                     capturedPhotos.removeAt(
                                         index
                                     )
@@ -967,6 +956,7 @@ fun DailyUpdateFormScreen(
                 }
 
                 item {
+
                     Spacer(
                         modifier =
                             Modifier.height(8.dp)
@@ -1025,6 +1015,7 @@ fun DailyUpdateFormScreen(
 
                             val photos =
                                 capturedPhotos.map {
+
                                     PhotoInput(
                                         photoData =
                                             it,
@@ -1217,10 +1208,12 @@ fun DailyUpdateFormScreen(
 
                 TextButton(
                     onClick = {
+
                         showCameraPermissionMessage =
                             false
                     }
                 ) {
+
                     Text("OK")
                 }
             }
@@ -1233,6 +1226,7 @@ private fun AddStaffDialog(
     onDismiss: () -> Unit,
     onAdd: (String, String) -> Unit
 ) {
+
     var name by
     remember {
         mutableStateOf("")
@@ -1247,6 +1241,7 @@ private fun AddStaffDialog(
         onDismissRequest =
             onDismiss,
         title = {
+
             Text(
                 "Add person"
             )
@@ -1332,6 +1327,7 @@ private fun AddStaffDialog(
                     )
                 }
             ) {
+
                 Text("Add")
             }
         },
@@ -1341,6 +1337,7 @@ private fun AddStaffDialog(
                 onClick =
                     onDismiss
             ) {
+
                 Text("Cancel")
             }
         }
@@ -1354,6 +1351,7 @@ private fun AddItemDialog(
     onDismiss: () -> Unit,
     onAdd: (String) -> Unit
 ) {
+
     var value by
     remember {
         mutableStateOf("")
@@ -1363,6 +1361,7 @@ private fun AddItemDialog(
         onDismissRequest =
             onDismiss,
         title = {
+
             Text(title)
         },
         text = {
@@ -1388,11 +1387,13 @@ private fun AddItemDialog(
                 enabled =
                     value.isNotBlank(),
                 onClick = {
+
                     onAdd(
                         value.trim()
                     )
                 }
             ) {
+
                 Text("Add")
             }
         },
@@ -1402,6 +1403,7 @@ private fun AddItemDialog(
                 onClick =
                     onDismiss
             ) {
+
                 Text("Cancel")
             }
         }
@@ -1415,6 +1417,7 @@ private fun JobOption(
     selectedJob: String,
     onSelected: (String) -> Unit
 ) {
+
     Row(
         modifier =
             Modifier
@@ -1446,12 +1449,14 @@ private fun OutlinedAddButton(
     text: String,
     onClick: () -> Unit
 ) {
+
     Surface(
         modifier =
             Modifier
                 .fillMaxWidth()
                 .clickable(
-                    onClick = onClick
+                    onClick =
+                        onClick
                 ),
         shape =
             RoundedCornerShape(10.dp),
@@ -1512,6 +1517,7 @@ private fun PhotoThumbnail(
     label: String,
     onRemove: () -> Unit
 ) {
+
     val bitmap =
         remember(photoData) {
             decodeBase64Bitmap(
@@ -1595,6 +1601,7 @@ private fun PhotoThumbnail(
 private fun decodeBase64Bitmap(
     value: String
 ): Bitmap? {
+
     return try {
 
         val cleanValue =
@@ -1616,6 +1623,7 @@ private fun decodeBase64Bitmap(
         )
 
     } catch (_: Exception) {
+
         null
     }
 }
@@ -1623,6 +1631,7 @@ private fun decodeBase64Bitmap(
 private fun bitmapToBase64(
     bitmap: Bitmap
 ): String {
+
     val outputStream =
         java.io.ByteArrayOutputStream()
 
@@ -1647,6 +1656,7 @@ data class ToolItem(
 fun FormSectionTitle(
     title: String
 ) {
+
     Text(
         text =
             title,
@@ -1668,6 +1678,7 @@ fun Chip(
     isDashed: Boolean = false,
     onClick: () -> Unit
 ) {
+
     Surface(
         modifier =
             Modifier.clickable(

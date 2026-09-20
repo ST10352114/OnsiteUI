@@ -113,13 +113,6 @@ class ForemanViewModel : ViewModel() {
         }
     }
 
-    /*
-     * Select a site and clear the previous site's daily update.
-     *
-     * This is important when moving from Site A -> Site B.
-     * Otherwise Site A's existing update could temporarily remain
-     * visible while Site B is loading.
-     */
     fun selectSite(
         siteId: String
     ) {
@@ -140,57 +133,62 @@ class ForemanViewModel : ViewModel() {
     }
 
     /*
-     * Fetch ONLY today's update for the selected site.
+     * Loads today's update synchronously from the
+     * calling coroutine.
+     *
+     * DailyUpdateFormScreen calls this from LaunchedEffect,
+     * so the screen waits until the API request has actually
+     * completed before populating the form.
      */
-    fun loadTodayUpdate(
+    suspend fun loadTodayUpdate(
         siteId: String
-    ) {
+    ): SiteUpdate? {
 
         if (siteId.isBlank()) {
-            _todayUpdate.value = null
-            return
-        }
 
-        viewModelScope.launch {
-
-            _isLoadingTodayUpdate.value =
-                true
-
-            _errorMessage.value =
-                null
-
-            /*
-             * Clear the old value before making the request.
-             * This prevents stale data from another site appearing.
-             */
             _todayUpdate.value =
                 null
 
-            try {
+            return null
+        }
 
-                val existingUpdate =
-                    OnSiteRepository
-                        .getTodaySiteUpdate(
-                            siteId
-                        )
+        _isLoadingTodayUpdate.value =
+            true
 
-                _todayUpdate.value =
-                    existingUpdate
+        _errorMessage.value =
+            null
 
-            } catch (e: Exception) {
+        _todayUpdate.value =
+            null
 
-                _todayUpdate.value =
-                    null
+        return try {
 
-                _errorMessage.value =
-                    e.message
-                        ?: "Failed to load today's update."
+            val existingUpdate =
+                OnSiteRepository
+                    .getTodaySiteUpdate(
+                        siteId
+                    )
 
-            } finally {
+            _todayUpdate.value =
+                existingUpdate
 
-                _isLoadingTodayUpdate.value =
-                    false
-            }
+            existingUpdate
+
+        } catch (e: Exception) {
+
+            _todayUpdate.value =
+                null
+
+            _errorMessage.value =
+                e.message
+                    ?: "Failed to load today's update."
+
+            null
+
+        } finally {
+
+            _isLoadingTodayUpdate.value =
+                false
         }
     }
 
@@ -241,10 +239,6 @@ class ForemanViewModel : ViewModel() {
                                 notes
                         )
 
-                /*
-                 * Immediately replace today's cached update with
-                 * the response returned by the API.
-                 */
                 _todayUpdate.value =
                     response
 
