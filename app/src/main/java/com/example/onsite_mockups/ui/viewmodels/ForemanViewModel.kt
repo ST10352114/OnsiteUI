@@ -46,6 +46,20 @@ class ForemanViewModel : ViewModel() {
             StateFlow<List<SiteUpdate>> =
         _updates.asStateFlow()
 
+    private val _todayUpdate =
+        MutableStateFlow<SiteUpdate?>(null)
+
+    val todayUpdate:
+            StateFlow<SiteUpdate?> =
+        _todayUpdate.asStateFlow()
+
+    private val _isLoadingTodayUpdate =
+        MutableStateFlow(false)
+
+    val isLoadingTodayUpdate:
+            StateFlow<Boolean> =
+        _isLoadingTodayUpdate.asStateFlow()
+
     private val _isSubmitting =
         MutableStateFlow(false)
 
@@ -108,6 +122,45 @@ class ForemanViewModel : ViewModel() {
             _sites.value.find {
                 it.id == siteId
             }
+
+        _todayUpdate.value = null
+    }
+
+    fun loadTodayUpdate(
+        siteId: String
+    ) {
+
+        viewModelScope.launch {
+
+            _isLoadingTodayUpdate.value =
+                true
+
+            _errorMessage.value =
+                null
+
+            try {
+
+                _todayUpdate.value =
+                    OnSiteRepository
+                        .getTodaySiteUpdate(
+                            siteId
+                        )
+
+            } catch (e: Exception) {
+
+                _todayUpdate.value =
+                    null
+
+                _errorMessage.value =
+                    e.message
+                        ?: "Failed to load today's update."
+
+            } finally {
+
+                _isLoadingTodayUpdate.value =
+                    false
+            }
+        }
     }
 
     fun submitDailyUpdate(
@@ -132,19 +185,33 @@ class ForemanViewModel : ViewModel() {
 
         viewModelScope.launch {
 
-            _isSubmitting.value = true
-            _errorMessage.value = null
+            _isSubmitting.value =
+                true
+
+            _errorMessage.value =
+                null
 
             try {
 
-                OnSiteRepository.addSiteUpdate(
-                    siteId = currentSiteId,
-                    staffNames = staffNames,
-                    powerTools = powerTools,
-                    plantMachines = plantMachines,
-                    photos = photos,
-                    notes = notes
-                )
+                val response =
+                    OnSiteRepository
+                        .addSiteUpdate(
+                            siteId =
+                                currentSiteId,
+                            staffNames =
+                                staffNames,
+                            powerTools =
+                                powerTools,
+                            plantMachines =
+                                plantMachines,
+                            photos =
+                                photos,
+                            notes =
+                                notes
+                        )
+
+                _todayUpdate.value =
+                    response
 
                 _updates.value =
                     OnSiteRepository
@@ -160,7 +227,8 @@ class ForemanViewModel : ViewModel() {
 
             } finally {
 
-                _isSubmitting.value = false
+                _isSubmitting.value =
+                    false
             }
         }
     }

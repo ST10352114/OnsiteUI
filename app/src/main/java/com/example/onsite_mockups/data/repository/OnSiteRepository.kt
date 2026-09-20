@@ -12,6 +12,9 @@ import com.example.onsite_mockups.data.network.OnSiteApiService
 import com.example.onsite_mockups.data.network.PhotoInput
 import com.example.onsite_mockups.data.network.RetrofitClient
 import com.example.onsite_mockups.data.network.SiteUpdateRequest
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 object OnSiteRepository {
 
@@ -57,13 +60,16 @@ object OnSiteRepository {
             profilesList.addAll(response)
 
             if (role != null) {
+
                 profilesList.filter {
                     it.role.equals(
                         role,
                         ignoreCase = true
                     )
                 }
+
             } else {
+
                 profilesList.toList()
             }
 
@@ -87,20 +93,28 @@ object OnSiteRepository {
 
         val newProfile =
             Profile(
-                fullName = fullName,
-                role = role,
-                email = email,
-                phone = null,
-                isActive = true
+                fullName =
+                    fullName,
+                role =
+                    role,
+                email =
+                    email,
+                phone =
+                    null,
+                isActive =
+                    true
             )
 
         return try {
 
             val response =
-                api.createProfile(newProfile)
+                api.createProfile(
+                    newProfile
+                )
 
             profilesList.removeAll {
-                it.id == response.profile.id
+                it.id ==
+                        response.profile.id
             }
 
             profilesList.add(
@@ -121,7 +135,8 @@ object OnSiteRepository {
         }
     }
 
-    suspend fun getSites(): List<Site> {
+    suspend fun getSites():
+            List<Site> {
 
         return try {
 
@@ -152,21 +167,29 @@ object OnSiteRepository {
 
         val newSite =
             Site(
-                name = name,
-                address = address,
-                isActive = true
+                name =
+                    name,
+                address =
+                    address,
+                isActive =
+                    true
             )
 
         return try {
 
             val response =
-                api.createSite(newSite)
+                api.createSite(
+                    newSite
+                )
 
             sitesList.removeAll {
-                it.id == response.id
+                it.id ==
+                        response.id
             }
 
-            sitesList.add(response)
+            sitesList.add(
+                response
+            )
 
             response
 
@@ -191,24 +214,32 @@ object OnSiteRepository {
 
         val request =
             SiteEditRequest(
-                name = name.trim(),
-                address = address.trim(),
-                isActive = isActive
+                name =
+                    name.trim(),
+                address =
+                    address.trim(),
+                isActive =
+                    isActive
             )
 
         return try {
 
             val response =
                 api.updateSite(
-                    id = id,
-                    siteUpdate = request
+                    id =
+                        id,
+                    siteUpdate =
+                        request
                 )
 
             sitesList.removeAll {
-                it.id == response.id
+                it.id ==
+                        response.id
             }
 
-            sitesList.add(response)
+            sitesList.add(
+                response
+            )
 
             response
 
@@ -258,18 +289,24 @@ object OnSiteRepository {
 
             val request =
                 AssignmentRequest(
-                    siteId = siteId,
-                    foremanId = foremanId
+                    siteId =
+                        siteId,
+                    foremanId =
+                        foremanId
                 )
 
-            api.createAssignment(request)
+            api.createAssignment(
+                request
+            )
 
             val refreshed =
                 getAssignments()
 
             refreshed.firstOrNull {
-                it.siteId == siteId &&
-                        it.foremanId == foremanId
+                it.siteId ==
+                        siteId &&
+                        it.foremanId ==
+                        foremanId
             }
 
         } catch (e: Exception) {
@@ -290,13 +327,17 @@ object OnSiteRepository {
     ) {
 
         api.deleteAssignment(
-            siteId = siteId,
-            foremanId = foremanId
+            siteId =
+                siteId,
+            foremanId =
+                foremanId
         )
 
         assignmentsList.removeAll {
-            it.siteId == siteId &&
-                    it.foremanId == foremanId
+            it.siteId ==
+                    siteId &&
+                    it.foremanId ==
+                    foremanId
         }
     }
 
@@ -325,6 +366,66 @@ object OnSiteRepository {
         }
     }
 
+    suspend fun getTodaySiteUpdate(
+        siteId: String
+    ): SiteUpdate? {
+
+        val today =
+            SimpleDateFormat(
+                "yyyy-MM-dd",
+                Locale.US
+            ).format(
+                Date()
+            )
+
+        return try {
+
+            val response =
+                api.getSiteUpdates(
+                    siteId =
+                        siteId,
+                    startDate =
+                        today,
+                    endDate =
+                        today
+                )
+
+            val todayUpdate =
+                response.firstOrNull {
+                    it.siteId ==
+                            siteId &&
+                            it.updateDate
+                                .startsWith(
+                                    today
+                                )
+                }
+
+            if (todayUpdate != null) {
+
+                siteUpdatesList.removeAll {
+                    it.id ==
+                            todayUpdate.id
+                }
+
+                siteUpdatesList.add(
+                    todayUpdate
+                )
+            }
+
+            todayUpdate
+
+        } catch (e: Exception) {
+
+            Log.e(
+                "OnSiteRepository",
+                "Error fetching today's site update",
+                e
+            )
+
+            throw e
+        }
+    }
+
     suspend fun addSiteUpdate(
         siteId: String,
         staffNames: String,
@@ -336,24 +437,35 @@ object OnSiteRepository {
 
         val request =
             SiteUpdateRequest(
-                siteId = siteId,
-                staffNames = staffNames,
-                powerTools = powerTools,
-                plantMachines = plantMachines,
-                notes = notes,
-                photos = photos
+                siteId =
+                    siteId,
+                staffNames =
+                    staffNames,
+                powerTools =
+                    powerTools,
+                plantMachines =
+                    plantMachines,
+                notes =
+                    notes,
+                photos =
+                    photos
             )
 
         return try {
 
             val response =
-                api.submitUpdate(request)
+                api.submitUpdate(
+                    request
+                )
 
             siteUpdatesList.removeAll {
-                it.id == response.id
+                it.id ==
+                        response.id
             }
 
-            siteUpdatesList.add(response)
+            siteUpdatesList.add(
+                response
+            )
 
             Log.d(
                 "OnSiteRepository",
