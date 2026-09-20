@@ -1,5 +1,8 @@
 package com.example.onsite_mockups.ui.screens.admin
-
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -351,6 +354,7 @@ fun SitesAndCrewScreen(
                         text = "Assign foreman to site",
                         onClick = {
                             adminViewModel.clearMessages()
+                            adminViewModel.refreshAssignmentData()
                             showAssignForemanDialog = true
                         }
                     )
@@ -799,6 +803,7 @@ private fun AddForemanDialog(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AssignForemanDialog(
     sites: List<Site>,
@@ -832,104 +837,112 @@ private fun AssignForemanDialog(
                 selectedForeman?.id != null &&
                 assignments.any {
                     it.siteId == selectedSite?.id &&
-                            it.foremanId ==
-                            selectedForeman?.id
+                            it.foremanId == selectedForeman?.id
                 }
 
     AlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {
+            if (!isSaving) {
+                onDismiss()
+            }
+        },
         title = {
             Text(
                 text = "Assign Foreman",
-                fontWeight =
-                    FontWeight.Bold
+                fontWeight = FontWeight.Bold
             )
         },
         text = {
             Column(
                 verticalArrangement =
-                    Arrangement.spacedBy(12.dp)
+                    Arrangement.spacedBy(14.dp)
             ) {
 
                 Text(
                     text = "Site",
                     fontSize = 12.sp,
-                    fontWeight =
-                        FontWeight.Bold,
-                    color =
-                        Color(0xFF6C757D)
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF6C757D)
                 )
 
-                Box {
+                ExposedDropdownMenuBox(
+                    expanded = siteMenuExpanded,
+                    onExpandedChange = {
+                        if (!isSaving &&
+                            sites.isNotEmpty()
+                        ) {
+                            siteMenuExpanded =
+                                !siteMenuExpanded
+
+                            if (siteMenuExpanded) {
+                                foremanMenuExpanded =
+                                    false
+                            }
+                        }
+                    }
+                ) {
                     OutlinedTextField(
                         value =
                             selectedSite?.name
-                                ?: "",
+                                ?: if (sites.isEmpty()) {
+                                    "No sites available"
+                                } else {
+                                    ""
+                                },
                         onValueChange = {},
+                        readOnly = true,
+                        enabled =
+                            !isSaving &&
+                                    sites.isNotEmpty(),
+                        label = {
+                            Text("Select site")
+                        },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults
+                                .TrailingIcon(
+                                    expanded =
+                                        siteMenuExpanded
+                                )
+                        },
                         modifier =
                             Modifier
                                 .fillMaxWidth()
-                                .clickable {
-                                    if (!isSaving) {
-                                        siteMenuExpanded =
-                                            true
-                                    }
-                                },
-                        readOnly = true,
-                        enabled = !isSaving,
-                        label = {
-                            Text(
-                                "Select site"
-                            )
-                        },
-                        trailingIcon = {
-                            Icon(
-                                Icons.Default.ArrowDropDown,
-                                contentDescription =
-                                    "Select site"
-                            )
-                        }
+                                .menuAnchor()
                     )
 
-                    if (siteMenuExpanded) {
-                        Card(
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(
-                                        top = 68.dp
-                                    ),
-                            elevation =
-                                CardDefaults
-                                    .cardElevation(
-                                        defaultElevation =
-                                            8.dp
-                                    )
-                        ) {
-                            Column {
-                                sites.forEach { site ->
-                                    Text(
-                                        text =
-                                            site.name,
-                                        modifier =
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .clickable {
-                                                    selectedSite =
-                                                        site
-                                                    selectedForeman =
-                                                        null
-                                                    siteMenuExpanded =
-                                                        false
-                                                }
-                                                .padding(
-                                                    16.dp
-                                                ),
-                                        fontSize =
-                                            14.sp
-                                    )
+                    ExposedDropdownMenu(
+                        expanded = siteMenuExpanded,
+                        onDismissRequest = {
+                            siteMenuExpanded = false
+                        }
+                    ) {
+                        sites.forEach { site ->
+
+                            DropdownMenuItem(
+                                text = {
+                                    Column {
+                                        Text(
+                                            text =
+                                                site.name,
+                                            fontWeight =
+                                                FontWeight.Medium
+                                        )
+
+                                        Text(
+                                            text =
+                                                site.address,
+                                            fontSize = 12.sp,
+                                            color =
+                                                Color(0xFF6C757D)
+                                        )
+                                    }
+                                },
+                                onClick = {
+                                    selectedSite = site
+                                    selectedForeman = null
+                                    siteMenuExpanded = false
                                 }
-                            }
+                            )
                         }
                     }
                 }
@@ -937,134 +950,131 @@ private fun AssignForemanDialog(
                 Text(
                     text = "Foreman",
                     fontSize = 12.sp,
-                    fontWeight =
-                        FontWeight.Bold,
-                    color =
-                        Color(0xFF6C757D)
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF6C757D)
                 )
 
-                Box {
-                    OutlinedTextField(
-                        value =
-                            selectedForeman
-                                ?.fullName
-                                ?: "",
-                        onValueChange = {},
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    if (!isSaving) {
-                                        foremanMenuExpanded =
-                                            true
-                                    }
-                                },
-                        readOnly = true,
-                        enabled = !isSaving,
-                        label = {
-                            Text(
-                                "Select foreman"
-                            )
-                        },
-                        trailingIcon = {
-                            Icon(
-                                Icons.Default.ArrowDropDown,
-                                contentDescription =
-                                    "Select foreman"
-                            )
-                        }
-                    )
-
-                    if (foremanMenuExpanded) {
-                        Card(
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(
-                                        top = 68.dp
-                                    ),
-                            elevation =
-                                CardDefaults
-                                    .cardElevation(
-                                        defaultElevation =
-                                            8.dp
-                                    )
+                ExposedDropdownMenuBox(
+                    expanded = foremanMenuExpanded,
+                    onExpandedChange = {
+                        if (!isSaving &&
+                            foremen.isNotEmpty()
                         ) {
-                            Column {
-                                foremen.forEach { foreman ->
+                            foremanMenuExpanded =
+                                !foremanMenuExpanded
 
-                                    val assigned =
-                                        selectedSite?.id != null &&
-                                                foreman.id != null &&
-                                                assignments.any {
-                                                    it.siteId ==
-                                                            selectedSite?.id &&
-                                                            it.foremanId ==
-                                                            foreman.id
-                                                }
-
-                                    Row(
-                                        modifier =
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .clickable {
-                                                    if (!assigned) {
-                                                        selectedForeman =
-                                                            foreman
-                                                        foremanMenuExpanded =
-                                                            false
-                                                    }
-                                                }
-                                                .padding(
-                                                    16.dp
-                                                ),
-                                        horizontalArrangement =
-                                            Arrangement
-                                                .SpaceBetween
-                                    ) {
-                                        Column {
-                                            Text(
-                                                text =
-                                                    foreman.fullName,
-                                                fontSize =
-                                                    14.sp,
-                                                fontWeight =
-                                                    FontWeight
-                                                        .Medium
-                                            )
-
-                                            Text(
-                                                text =
-                                                    foreman.email,
-                                                fontSize =
-                                                    12.sp,
-                                                color =
-                                                    Color(
-                                                        0xFF6C757D
-                                                    )
-                                            )
-                                        }
-
-                                        if (assigned) {
-                                            Text(
-                                                text =
-                                                    "Assigned",
-                                                fontSize =
-                                                    11.sp,
-                                                color =
-                                                    Color(
-                                                        0xFF2E7D32
-                                                    ),
-                                                fontWeight =
-                                                    FontWeight
-                                                        .Bold
-                                            )
-                                        }
-                                    }
-                                }
+                            if (foremanMenuExpanded) {
+                                siteMenuExpanded =
+                                    false
                             }
                         }
                     }
+                ) {
+                    OutlinedTextField(
+                        value =
+                            selectedForeman?.fullName
+                                ?: if (foremen.isEmpty()) {
+                                    "No foremen available"
+                                } else {
+                                    ""
+                                },
+                        onValueChange = {},
+                        readOnly = true,
+                        enabled =
+                            !isSaving &&
+                                    foremen.isNotEmpty(),
+                        label = {
+                            Text("Select foreman")
+                        },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults
+                                .TrailingIcon(
+                                    expanded =
+                                        foremanMenuExpanded
+                                )
+                        },
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .menuAnchor()
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = foremanMenuExpanded,
+                        onDismissRequest = {
+                            foremanMenuExpanded = false
+                        }
+                    ) {
+                        foremen.forEach { foreman ->
+
+                            val assigned =
+                                selectedSite?.id != null &&
+                                        foreman.id != null &&
+                                        assignments.any {
+                                            it.siteId ==
+                                                    selectedSite?.id &&
+                                                    it.foremanId ==
+                                                    foreman.id
+                                        }
+
+                            DropdownMenuItem(
+                                text = {
+                                    Column {
+                                        Text(
+                                            text =
+                                                foreman.fullName,
+                                            fontWeight =
+                                                FontWeight.Medium
+                                        )
+
+                                        Text(
+                                            text =
+                                                if (assigned) {
+                                                    "${foreman.email} • Already assigned"
+                                                } else {
+                                                    foreman.email
+                                                },
+                                            fontSize = 12.sp,
+                                            color =
+                                                if (assigned) {
+                                                    Color(0xFF2E7D32)
+                                                } else {
+                                                    Color(0xFF6C757D)
+                                                }
+                                        )
+                                    }
+                                },
+                                enabled = !assigned,
+                                onClick = {
+                                    selectedForeman =
+                                        foreman
+
+                                    foremanMenuExpanded =
+                                        false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                if (sites.isEmpty()) {
+                    Text(
+                        text =
+                            "No sites were loaded. Close this popup and refresh the Sites & Crew screen.",
+                        color =
+                            Color(0xFFC62828),
+                        fontSize = 12.sp
+                    )
+                }
+
+                if (foremen.isEmpty()) {
+                    Text(
+                        text =
+                            "No foremen were loaded. Close this popup and refresh the Sites & Crew screen.",
+                        color =
+                            Color(0xFFC62828),
+                        fontSize = 12.sp
+                    )
                 }
 
                 if (alreadyAssigned) {
@@ -1102,8 +1112,7 @@ private fun AssignForemanDialog(
                         modifier =
                             Modifier.size(18.dp),
                         strokeWidth = 2.dp,
-                        color =
-                            Color.White
+                        color = Color.White
                     )
                 } else {
                     Text("Assign")

@@ -50,6 +50,12 @@ class AdminViewModel : ViewModel() {
     val isSaving: StateFlow<Boolean> =
         _isSaving.asStateFlow()
 
+    private val _isLoading =
+        MutableStateFlow(false)
+
+    val isLoading: StateFlow<Boolean> =
+        _isLoading.asStateFlow()
+
     private val _errorMessage =
         MutableStateFlow<String?>(null)
 
@@ -94,36 +100,26 @@ class AdminViewModel : ViewModel() {
 
     fun loadAdminData() {
         viewModelScope.launch {
-
+            _isLoading.value = true
             _errorMessage.value = null
+
+            var firstError: String? = null
 
             try {
                 _sites.value =
                     OnSiteRepository.getSites()
             } catch (e: Exception) {
-                _errorMessage.value =
+                firstError =
                     e.message ?: "Failed to load sites."
-            }
-
-            try {
-                _updates.value =
-                    OnSiteRepository.getSiteUpdates()
-            } catch (e: Exception) {
-                if (_errorMessage.value == null) {
-                    _errorMessage.value =
-                        e.message
-                            ?: "Failed to load site updates."
-                }
             }
 
             try {
                 _foremen.value =
                     OnSiteRepository.getProfiles("foreman")
             } catch (e: Exception) {
-                if (_errorMessage.value == null) {
-                    _errorMessage.value =
-                        e.message
-                            ?: "Failed to load foremen."
+                if (firstError == null) {
+                    firstError =
+                        e.message ?: "Failed to load foremen."
                 }
             }
 
@@ -131,11 +127,44 @@ class AdminViewModel : ViewModel() {
                 _assignments.value =
                     OnSiteRepository.getAssignments()
             } catch (e: Exception) {
-                if (_errorMessage.value == null) {
-                    _errorMessage.value =
-                        e.message
-                            ?: "Failed to load site assignments."
+                if (firstError == null) {
+                    firstError =
+                        e.message ?: "Failed to load assignments."
                 }
+            }
+
+            try {
+                _updates.value =
+                    OnSiteRepository.getSiteUpdates()
+            } catch (e: Exception) {
+                if (firstError == null) {
+                    firstError =
+                        e.message ?: "Failed to load site updates."
+                }
+            }
+
+            _errorMessage.value = firstError
+            _isLoading.value = false
+        }
+    }
+
+    fun refreshAssignmentData() {
+        viewModelScope.launch {
+            _errorMessage.value = null
+
+            try {
+                _sites.value =
+                    OnSiteRepository.getSites()
+
+                _foremen.value =
+                    OnSiteRepository.getProfiles("foreman")
+
+                _assignments.value =
+                    OnSiteRepository.getAssignments()
+            } catch (e: Exception) {
+                _errorMessage.value =
+                    e.message
+                        ?: "Failed to refresh sites and foremen."
             }
         }
     }
@@ -284,7 +313,8 @@ class AdminViewModel : ViewModel() {
                     }
 
                 _successMessage.value =
-                    "Foreman ${assignedForeman?.fullName ?: ""} assigned to ${assignedSite?.name ?: "site"}."
+                    "Foreman ${assignedForeman?.fullName ?: ""} " +
+                            "assigned to ${assignedSite?.name ?: "site"}."
             } catch (e: Exception) {
                 _errorMessage.value =
                     e.message
