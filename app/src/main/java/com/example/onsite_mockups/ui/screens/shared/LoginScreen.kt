@@ -20,6 +20,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.onsite_mockups.data.models.Profile
 import com.example.onsite_mockups.data.network.SupabaseClient
 import com.example.onsite_mockups.ui.viewmodels.AuthViewModel
 import com.example.onsite_mockups.ui.viewmodels.LoginState
@@ -28,8 +29,8 @@ import io.github.jan.supabase.gotrue.auth
 @Composable
 fun LoginScreen(
     authViewModel: AuthViewModel,
-    onLoginSuccess: (String) -> Unit,
-    onGoogleLoginSuccess: (com.example.onsite_mockups.data.models.Profile) -> Unit,
+    isGoogleCallback: Boolean = false,
+    onLoginSuccess: (Profile) -> Unit,
     onForgotPasswordClick: () -> Unit = {}
 ) {
     var email by remember {
@@ -57,25 +58,23 @@ fun LoginScreen(
     val errorMessage =
         (loginState as? LoginState.Error)?.message
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(isGoogleCallback) {
+        if (!isGoogleCallback || googleCallbackHandled) {
+            return@LaunchedEffect
+        }
+
         val user =
             SupabaseClient
                 .client
                 .auth
                 .currentUserOrNull()
 
-        if (
-            user != null &&
-            !googleCallbackHandled
-        ) {
+        if (user != null) {
             googleCallbackHandled = true
 
-            authViewModel
-                .completeGoogleLogin { profile ->
-                    onGoogleLoginSuccess(
-                        profile
-                    )
-                }
+            authViewModel.completeGoogleLogin { profile ->
+                onLoginSuccess(profile)
+            }
         }
     }
 
@@ -104,9 +103,7 @@ fun LoginScreen(
                             colors =
                                 listOf(
                                     Color(0xFFFFC107)
-                                        .copy(
-                                            alpha = 0.1f
-                                        ),
+                                        .copy(alpha = 0.1f),
                                     Color.Transparent
                                 )
                         )
@@ -139,9 +136,7 @@ fun LoginScreen(
                         Modifier
                             .size(56.dp)
                             .clip(
-                                RoundedCornerShape(
-                                    16.dp
-                                )
+                                RoundedCornerShape(16.dp)
                             )
                             .background(
                                 Color(0xFFFFC107)
@@ -179,8 +174,7 @@ fun LoginScreen(
                     )
 
                     Text(
-                        text =
-                            "MOCKUPS PRO",
+                        text = "MOCKUPS PRO",
                         fontSize = 12.sp,
                         fontWeight =
                             FontWeight.Bold,
@@ -212,13 +206,11 @@ fun LoginScreen(
                 ) {
 
                     Text(
-                        text =
-                            "Welcome Back",
+                        text = "Welcome Back",
                         fontSize = 22.sp,
                         fontWeight =
                             FontWeight.Bold,
-                        color =
-                            Color.White
+                        color = Color.White
                     )
 
                     Text(
@@ -228,9 +220,7 @@ fun LoginScreen(
                         color =
                             Color(0xFF9BA3AF),
                         modifier =
-                            Modifier.padding(
-                                top = 4.dp
-                            )
+                            Modifier.padding(top = 4.dp)
                     )
 
                     Spacer(
@@ -252,29 +242,21 @@ fun LoginScreen(
                                     ),
                             color =
                                 Color(0xFFFF5252)
-                                    .copy(
-                                        alpha = 0.1f
-                                    ),
+                                    .copy(alpha = 0.1f),
                             shape =
-                                RoundedCornerShape(
-                                    8.dp
-                                ),
+                                RoundedCornerShape(8.dp),
                             border =
                                 androidx.compose.foundation
                                     .BorderStroke(
                                         1.dp,
                                         Color(0xFFFF5252)
-                                            .copy(
-                                                alpha = 0.5f
-                                            )
+                                            .copy(alpha = 0.5f)
                                     )
                         ) {
 
                             Row(
                                 modifier =
-                                    Modifier.padding(
-                                        12.dp
-                                    ),
+                                    Modifier.padding(12.dp),
                                 verticalAlignment =
                                     Alignment.CenterVertically
                             ) {
@@ -286,34 +268,27 @@ fun LoginScreen(
                                     tint =
                                         Color(0xFFFF5252),
                                     modifier =
-                                        Modifier.size(
-                                            20.dp
-                                        )
+                                        Modifier.size(20.dp)
                                 )
 
                                 Spacer(
                                     modifier =
-                                        Modifier.width(
-                                            8.dp
-                                        )
+                                        Modifier.width(8.dp)
                                 )
 
                                 Text(
                                     text =
-                                        errorMessage
-                                            ?: "",
+                                        errorMessage ?: "",
                                     color =
                                         Color(0xFFFF5252),
-                                    fontSize =
-                                        13.sp
+                                    fontSize = 13.sp
                                 )
                             }
                         }
                     }
 
                     Text(
-                        text =
-                            "EMAIL ADDRESS",
+                        text = "EMAIL ADDRESS",
                         fontSize = 11.sp,
                         fontWeight =
                             FontWeight.ExtraBold,
@@ -342,9 +317,7 @@ fun LoginScreen(
                             )
                         },
                         shape =
-                            RoundedCornerShape(
-                                12.dp
-                            ),
+                            RoundedCornerShape(12.dp),
                         singleLine = true,
                         leadingIcon = {
                             Icon(
@@ -356,21 +329,20 @@ fun LoginScreen(
                             )
                         },
                         colors =
-                            OutlinedTextFieldDefaults
-                                .colors(
-                                    focusedBorderColor =
-                                        Color(0xFFFFC107),
-                                    unfocusedBorderColor =
-                                        Color(0xFF3D444B),
-                                    focusedContainerColor =
-                                        Color(0xFF1A1D20),
-                                    unfocusedContainerColor =
-                                        Color(0xFF1A1D20),
-                                    focusedTextColor =
-                                        Color.White,
-                                    unfocusedTextColor =
-                                        Color.White
-                                )
+                            OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor =
+                                    Color(0xFFFFC107),
+                                unfocusedBorderColor =
+                                    Color(0xFF3D444B),
+                                focusedContainerColor =
+                                    Color(0xFF1A1D20),
+                                unfocusedContainerColor =
+                                    Color(0xFF1A1D20),
+                                focusedTextColor =
+                                    Color.White,
+                                unfocusedTextColor =
+                                    Color.White
+                            )
                     )
 
                     Spacer(
@@ -379,8 +351,7 @@ fun LoginScreen(
                     )
 
                     Text(
-                        text =
-                            "PASSWORD",
+                        text = "PASSWORD",
                         fontSize = 11.sp,
                         fontWeight =
                             FontWeight.ExtraBold,
@@ -402,9 +373,7 @@ fun LoginScreen(
                         modifier =
                             Modifier.fillMaxWidth(),
                         shape =
-                            RoundedCornerShape(
-                                12.dp
-                            ),
+                            RoundedCornerShape(12.dp),
                         singleLine = true,
                         leadingIcon = {
                             Icon(
@@ -416,10 +385,11 @@ fun LoginScreen(
                             )
                         },
                         visualTransformation =
-                            if (passwordVisible)
+                            if (passwordVisible) {
                                 VisualTransformation.None
-                            else
-                                PasswordVisualTransformation(),
+                            } else {
+                                PasswordVisualTransformation()
+                            },
                         trailingIcon = {
 
                             IconButton(
@@ -431,12 +401,11 @@ fun LoginScreen(
 
                                 Icon(
                                     imageVector =
-                                        if (
-                                            passwordVisible
-                                        )
+                                        if (passwordVisible) {
                                             Icons.Default.VisibilityOff
-                                        else
-                                            Icons.Default.Visibility,
+                                        } else {
+                                            Icons.Default.Visibility
+                                        },
                                     contentDescription =
                                         null,
                                     tint =
@@ -445,21 +414,20 @@ fun LoginScreen(
                             }
                         },
                         colors =
-                            OutlinedTextFieldDefaults
-                                .colors(
-                                    focusedBorderColor =
-                                        Color(0xFFFFC107),
-                                    unfocusedBorderColor =
-                                        Color(0xFF3D444B),
-                                    focusedContainerColor =
-                                        Color(0xFF1A1D20),
-                                    unfocusedContainerColor =
-                                        Color(0xFF1A1D20),
-                                    focusedTextColor =
-                                        Color.White,
-                                    unfocusedTextColor =
-                                        Color.White
-                                )
+                            OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor =
+                                    Color(0xFFFFC107),
+                                unfocusedBorderColor =
+                                    Color(0xFF3D444B),
+                                focusedContainerColor =
+                                    Color(0xFF1A1D20),
+                                unfocusedContainerColor =
+                                    Color(0xFF1A1D20),
+                                focusedTextColor =
+                                    Color.White,
+                                unfocusedTextColor =
+                                    Color.White
+                            )
                     )
 
                     TextButton(
@@ -491,9 +459,7 @@ fun LoginScreen(
                                 email,
                                 password
                             ) { profile ->
-                                onLoginSuccess(
-                                    profile.fullName
-                                )
+                                onLoginSuccess(profile)
                             }
                         },
                         modifier =
@@ -501,17 +467,14 @@ fun LoginScreen(
                                 .fillMaxWidth()
                                 .height(56.dp),
                         shape =
-                            RoundedCornerShape(
-                                14.dp
-                            ),
+                            RoundedCornerShape(14.dp),
                         colors =
-                            ButtonDefaults
-                                .buttonColors(
-                                    containerColor =
-                                        Color(0xFFFFC107),
-                                    contentColor =
-                                        Color(0xFF1A1D20)
-                                ),
+                            ButtonDefaults.buttonColors(
+                                containerColor =
+                                    Color(0xFFFFC107),
+                                contentColor =
+                                    Color(0xFF1A1D20)
+                            ),
                         enabled =
                             !isLoading &&
                                     email.isNotBlank() &&
@@ -522,13 +485,10 @@ fun LoginScreen(
 
                             CircularProgressIndicator(
                                 modifier =
-                                    Modifier.size(
-                                        24.dp
-                                    ),
+                                    Modifier.size(24.dp),
                                 color =
                                     Color(0xFF1A1D20),
-                                strokeWidth =
-                                    3.dp
+                                strokeWidth = 3.dp
                             )
 
                         } else {
@@ -584,25 +544,21 @@ fun LoginScreen(
 
                     OutlinedButton(
                         onClick = {
-                            authViewModel
-                                .loginWithGoogle()
+                            authViewModel.loginWithGoogle()
                         },
                         modifier =
                             Modifier
                                 .fillMaxWidth()
                                 .height(56.dp),
                         shape =
-                            RoundedCornerShape(
-                                14.dp
-                            ),
+                            RoundedCornerShape(14.dp),
                         enabled =
                             !isLoading,
                         colors =
-                            ButtonDefaults
-                                .outlinedButtonColors(
-                                    contentColor =
-                                        Color.White
-                                ),
+                            ButtonDefaults.outlinedButtonColors(
+                                contentColor =
+                                    Color.White
+                            ),
                         border =
                             androidx.compose.foundation
                                 .BorderStroke(

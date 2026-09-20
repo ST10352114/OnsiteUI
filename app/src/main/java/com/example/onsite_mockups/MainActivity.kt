@@ -72,7 +72,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         requestNotificationPermission()
-
+        val isGoogleCallback =
+            intent?.data?.scheme == "onsite" &&
+                    intent?.data?.host == "login-callback"
         setContent {
 
             OnSiteMockupsTheme {
@@ -182,25 +184,22 @@ class MainActivity : ComponentActivity() {
                         ) {
 
                             LoginScreen(
-                                authViewModel =
-                                    authViewModel,
+                                authViewModel = authViewModel,
+                                isGoogleCallback = isGoogleCallback,
 
-                                onGoogleLoginSuccess = { profile ->
+                                onLoginSuccess = { profile ->
 
                                     val destination =
                                         if (profile.role == "admin") {
 
-                                            adminViewModel
-                                                .loadAdminData()
+                                            adminViewModel.loadAdminData()
 
                                             Screen.AdminDashboard.route
 
                                         } else {
 
                                             foremanViewModel
-                                                .setForemanProfile(
-                                                    profile
-                                                )
+                                                .setForemanProfile(profile)
 
                                             foremanViewModel
                                                 .loadForemanData()
@@ -208,50 +207,8 @@ class MainActivity : ComponentActivity() {
                                             Screen.ForemanHome.route
                                         }
 
-                                    navController.navigate(
-                                        destination
-                                    ) {
-                                        popUpTo(
-                                            Screen.Login.route
-                                        ) {
-                                            inclusive = true
-                                        }
-                                    }
-                                },
-
-                                onLoginSuccess = {
-                                    val profile =
-                                        authViewModel
-                                            .currentProfile
-                                            .value
-
-                                    val destination =
-                                        if (profile?.role == "admin") {
-
-                                            adminViewModel
-                                                .loadAdminData()
-
-                                            Screen.AdminDashboard.route
-
-                                        } else {
-
-                                            foremanViewModel
-                                                .setForemanProfile(
-                                                    profile
-                                                )
-
-                                            foremanViewModel
-                                                .loadForemanData()
-
-                                            Screen.ForemanHome.route
-                                        }
-
-                                    navController.navigate(
-                                        destination
-                                    ) {
-                                        popUpTo(
-                                            Screen.Login.route
-                                        ) {
+                                    navController.navigate(destination) {
+                                        popUpTo(Screen.Login.route) {
                                             inclusive = true
                                         }
                                     }
@@ -373,12 +330,10 @@ class MainActivity : ComponentActivity() {
                                         navController.navigate(
                                             Screen.Login.route
                                         ) {
-
                                             popUpTo(
-                                                Screen.AdminDashboard.route
+                                                Screen.ForemanHome.route
                                             ) {
-                                                inclusive =
-                                                    true
+                                                inclusive = true
                                             }
                                         }
                                     }

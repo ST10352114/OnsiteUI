@@ -151,6 +151,22 @@ class AuthViewModel : ViewModel() {
                     return@launch
                 }
 
+                val session =
+                    auth.currentSessionOrNull()
+
+                if (session == null) {
+                    _loginState.value =
+                        LoginState.Error(
+                            "Google authentication session is unavailable."
+                        )
+
+                    return@launch
+                }
+
+                RetrofitClient.setToken(
+                    session.accessToken
+                )
+
                 val existingProfile =
                     try {
                         SupabaseClient
@@ -165,6 +181,7 @@ class AuthViewModel : ViewModel() {
                                 }
                             }
                             .decodeSingle<Profile>()
+
                     } catch (_: Exception) {
                         null
                     }
