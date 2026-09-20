@@ -28,6 +28,13 @@ data class Profile(
 
     @SerialName("createdAt")
     val createdAt: String? = null
+)@Serializable
+data class CreateProfileResponse(
+    @SerialName("profile")
+    val profile: Profile,
+
+    @SerialName("temporaryPassword")
+    val temporaryPassword: String
 )
 
 @Serializable

@@ -206,17 +206,23 @@ class AdminViewModel : ViewModel() {
             _successMessage.value = null
 
             try {
-                OnSiteRepository.addProfile(
-                    fullName = fullName.trim(),
-                    role = "foreman",
-                    email = email.trim()
-                )
+                val response =
+                    OnSiteRepository.addProfile(
+                        fullName = fullName.trim(),
+                        role = "foreman",
+                        email = email.trim()
+                    )
 
                 _foremen.value =
                     OnSiteRepository.getProfiles("foreman")
 
                 _successMessage.value =
-                    "Foreman added successfully."
+                    "Foreman added successfully.\n\n" +
+                            "Name: ${response.profile.fullName}\n" +
+                            "Email: ${response.profile.email}\n\n" +
+                            "Temporary password: ${response.temporaryPassword}\n\n" +
+                            "Give this password to the foreman. " +
+                            "They can use it to log in."
             } catch (e: Exception) {
                 _errorMessage.value =
                     e.message

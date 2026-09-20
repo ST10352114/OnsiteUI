@@ -1,5 +1,5 @@
 package com.example.onsite_mockups.data.repository
-
+import com.example.onsite_mockups.data.models.CreateProfileResponse
 import android.util.Log
 import com.example.onsite_mockups.data.models.AssignmentRequest
 import com.example.onsite_mockups.data.models.Profile
@@ -60,7 +60,7 @@ object OnSiteRepository {
         fullName: String,
         role: String,
         email: String
-    ): Profile {
+    ): CreateProfileResponse {
         val newProfile = Profile(
             fullName = fullName,
             role = role,
@@ -70,17 +70,18 @@ object OnSiteRepository {
         )
 
         return try {
-            val response = api.createProfile(newProfile)
+            val response =
+                api.createProfile(newProfile)
 
             profilesList.removeAll {
-                it.id == response.id
+                it.id == response.profile.id
             }
 
-            profilesList.add(response)
+            profilesList.add(response.profile)
 
             Log.d(
                 "OnSiteRepository",
-                "Successfully added profile: ${response.fullName}"
+                "Successfully added profile: ${response.profile.fullName}"
             )
 
             response

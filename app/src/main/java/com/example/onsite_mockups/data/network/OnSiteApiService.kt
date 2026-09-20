@@ -1,6 +1,7 @@
 package com.example.onsite_mockups.data.network
 
 import com.example.onsite_mockups.data.models.AssignmentRequest
+import com.example.onsite_mockups.data.models.CreateProfileResponse
 import com.example.onsite_mockups.data.models.Profile
 import com.example.onsite_mockups.data.models.Site
 import com.example.onsite_mockups.data.models.SiteForemanAssignment
@@ -23,7 +24,7 @@ interface OnSiteApiService {
     @POST("profiles")
     suspend fun createProfile(
         @Body profile: Profile
-    ): Profile
+    ): CreateProfileResponse
 
     @PATCH("profiles/{id}")
     suspend fun updateProfile(
