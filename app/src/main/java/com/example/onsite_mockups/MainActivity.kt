@@ -1,5 +1,5 @@
 package com.example.onsite_mockups
-
+import androidx.compose.runtime.collectAsState
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.compose.viewModel
+
 import com.example.onsite_mockups.ui.navigation.Screen
 import com.example.onsite_mockups.ui.screens.admin.AdminDashboardScreen
 import com.example.onsite_mockups.ui.screens.admin.AdminSettingsScreen
@@ -31,199 +33,414 @@ import com.example.onsite_mockups.ui.screens.foreman.UpdateSyncedScreen
 import com.example.onsite_mockups.ui.screens.shared.LoginScreen
 import com.example.onsite_mockups.ui.screens.shared.SplashScreen
 import com.example.onsite_mockups.ui.theme.OnSiteMockupsTheme
-
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.onsite_mockups.ui.viewmodels.*
+import com.example.onsite_mockups.ui.viewmodels.AdminViewModel
+import com.example.onsite_mockups.ui.viewmodels.AuthViewModel
+import com.example.onsite_mockups.ui.viewmodels.ForemanViewModel
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         enableEdgeToEdge()
+
         setContent {
             OnSiteMockupsTheme {
-                val navController = rememberNavController()
-                val authViewModel: AuthViewModel = viewModel()
-                val foremanViewModel: ForemanViewModel = viewModel()
-                val adminViewModel: AdminViewModel = viewModel()
 
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                val navController =
+                    rememberNavController()
+
+                val authViewModel: AuthViewModel =
+                    viewModel()
+
+                val foremanViewModel: ForemanViewModel =
+                    viewModel()
+
+                val adminViewModel: AdminViewModel =
+                    viewModel()
+
+                Scaffold(
+                    modifier = Modifier.fillMaxSize()
+                ) { innerPadding ->
+
                     NavHost(
                         navController = navController,
                         startDestination = Screen.Splash.route,
                         modifier = Modifier.padding(innerPadding)
                     ) {
+
                         composable(Screen.Splash.route) {
+
                             SplashScreen(
                                 onNavigateToNext = {
-                                    navController.navigate(Screen.Login.route) {
-                                        popUpTo(Screen.Splash.route) { inclusive = true }
-                                    }
-                                }
-                            )
-                        }
-                        composable(Screen.Login.route) {
-                            LoginScreen(
-                                authViewModel = authViewModel,
-                                onLoginSuccess = { fullName ->
-                                    val profile = authViewModel.currentProfile.value
-                                    val destination = if (profile?.role == "admin") {
-                                        adminViewModel.loadAdminData()
-                                        Screen.AdminDashboard.route
-                                    } else {
-                                        foremanViewModel.loadForemanData()
-                                        Screen.ForemanHome.route
-                                    }
-                                    navController.navigate(destination) {
-                                        popUpTo(Screen.Login.route) { inclusive = true }
-                                    }
-                                }
-                            )
-                        }
-                        composable(Screen.AdminDashboard.route) {
-                            AdminDashboardScreen(
-                                adminViewModel = adminViewModel,
-                                onUpdateClick = { updateId ->
-                                    adminViewModel.selectUpdate(updateId)
-                                    navController.navigate(Screen.AdminUpdateDetail.route)
-                                },
-                                onSitesCrewClick = {
-                                    navController.navigate(Screen.SitesAndCrew.route)
-                                },
-                                onProfileClick = {
-                                    navController.navigate(Screen.AdminSettings.route)
-                                }
-                            )
-                        }
-                        composable(Screen.SitesAndCrew.route) {
-                            SitesAndCrewScreen(
-                                adminViewModel = adminViewModel,
-                                onNavigateDashboard = {
-                                    navController.navigate(Screen.AdminDashboard.route) {
-                                        popUpTo(Screen.AdminDashboard.route) { inclusive = true }
-                                    }
-                                },
-                                onNavigateProfile = {
-                                    navController.navigate(Screen.AdminSettings.route)
-                                }
-                            )
-                        }
-                        composable(Screen.AdminSettings.route) {
-                            AdminSettingsScreen(
-                                authViewModel = authViewModel,
-                                onNavigateDashboard = {
-                                    navController.navigate(Screen.AdminDashboard.route) {
-                                        popUpTo(Screen.AdminDashboard.route) { inclusive = true }
-                                    }
-                                },
-                                onNavigateSitesCrew = {
-                                    navController.navigate(Screen.SitesAndCrew.route) {
-                                        popUpTo(Screen.SitesAndCrew.route) { inclusive = true }
-                                    }
-                                },
-                                onLogout = {
-                                    authViewModel.logout {
-                                        navController.navigate(Screen.Login.route) {
-                                            popUpTo(Screen.AdminDashboard.route) { inclusive = true }
+                                    navController.navigate(
+                                        Screen.Login.route
+                                    ) {
+                                        popUpTo(
+                                            Screen.Splash.route
+                                        ) {
+                                            inclusive = true
                                         }
                                     }
                                 }
                             )
                         }
-                        composable(Screen.AdminUpdateDetail.route) {
-                            AdminUpdateDetailScreen(
-                                adminViewModel = adminViewModel,
-                                onBackClick = { navController.popBackStack() },
-                                onExportClick = {},
-                                onFlagForReviewClick = { navController.popBackStack() }
+
+                        composable(Screen.Login.route) {
+
+                            LoginScreen(
+                                authViewModel = authViewModel,
+
+                                onLoginSuccess = { fullName ->
+
+                                    val profile =
+                                        authViewModel.currentProfile.value
+
+                                    val destination =
+                                        if (
+                                            profile?.role == "admin"
+                                        ) {
+
+                                            adminViewModel
+                                                .loadAdminData()
+
+                                            Screen.AdminDashboard.route
+
+                                        } else {
+
+                                            foremanViewModel
+                                                .setForemanProfile(
+                                                    profile
+                                                )
+
+                                            foremanViewModel
+                                                .loadForemanData()
+
+                                            Screen.ForemanHome.route
+                                        }
+
+                                    navController.navigate(
+                                        destination
+                                    ) {
+                                        popUpTo(
+                                            Screen.Login.route
+                                        ) {
+                                            inclusive = true
+                                        }
+                                    }
+                                }
                             )
                         }
-                        composable(Screen.ForemanHome.route) {
+
+                        composable(
+                            Screen.AdminDashboard.route
+                        ) {
+
+                            AdminDashboardScreen(
+                                adminViewModel =
+                                    adminViewModel,
+
+                                onUpdateClick = { updateId ->
+                                    adminViewModel
+                                        .selectUpdate(updateId)
+
+                                    navController.navigate(
+                                        Screen.AdminUpdateDetail.route
+                                    )
+                                },
+
+                                onSitesCrewClick = {
+                                    navController.navigate(
+                                        Screen.SitesAndCrew.route
+                                    )
+                                },
+
+                                onProfileClick = {
+                                    navController.navigate(
+                                        Screen.AdminSettings.route
+                                    )
+                                }
+                            )
+                        }
+
+                        composable(
+                            Screen.SitesAndCrew.route
+                        ) {
+
+                            SitesAndCrewScreen(
+                                adminViewModel =
+                                    adminViewModel,
+
+                                onNavigateDashboard = {
+                                    navController.navigate(
+                                        Screen.AdminDashboard.route
+                                    ) {
+                                        popUpTo(
+                                            Screen.AdminDashboard.route
+                                        ) {
+                                            inclusive = true
+                                        }
+                                    }
+                                },
+
+                                onNavigateProfile = {
+                                    navController.navigate(
+                                        Screen.AdminSettings.route
+                                    )
+                                }
+                            )
+                        }
+
+                        composable(
+                            Screen.AdminSettings.route
+                        ) {
+
+                            AdminSettingsScreen(
+                                authViewModel =
+                                    authViewModel,
+
+                                onNavigateDashboard = {
+                                    navController.navigate(
+                                        Screen.AdminDashboard.route
+                                    ) {
+                                        popUpTo(
+                                            Screen.AdminDashboard.route
+                                        ) {
+                                            inclusive = true
+                                        }
+                                    }
+                                },
+
+                                onNavigateSitesCrew = {
+                                    navController.navigate(
+                                        Screen.SitesAndCrew.route
+                                    ) {
+                                        popUpTo(
+                                            Screen.SitesAndCrew.route
+                                        ) {
+                                            inclusive = true
+                                        }
+                                    }
+                                },
+
+                                onLogout = {
+                                    authViewModel.logout {
+                                        navController.navigate(
+                                            Screen.Login.route
+                                        ) {
+                                            popUpTo(
+                                                Screen.AdminDashboard.route
+                                            ) {
+                                                inclusive = true
+                                            }
+                                        }
+                                    }
+                                }
+                            )
+                        }
+
+                        composable(
+                            Screen.AdminUpdateDetail.route
+                        ) {
+
+                            AdminUpdateDetailScreen(
+                                adminViewModel =
+                                    adminViewModel,
+
+                                onBackClick = {
+                                    navController.popBackStack()
+                                },
+
+                                onExportClick = {},
+
+                                onFlagForReviewClick = {
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
+
+                        composable(
+                            Screen.ForemanHome.route
+                        ) {
+
                             ForemanHomeScreen(
                                 foremanViewModel = foremanViewModel,
+                                profile = authViewModel.currentProfile.collectAsState().value,
                                 onSiteClick = { siteId ->
                                     foremanViewModel.selectSite(siteId)
+
                                     if (siteId == "palmgrove") {
-                                        navController.navigate(Screen.UpdateOffline.route)
+                                        navController.navigate(
+                                            Screen.UpdateOffline.route
+                                        )
                                     } else {
-                                        navController.navigate(Screen.DailyUpdateForm.route)
+                                        navController.navigate(
+                                            Screen.DailyUpdateForm.route
+                                        )
                                     }
                                 },
                                 onAchievementsClick = {
-                                    navController.navigate(Screen.Achievements.route)
+                                    navController.navigate(
+                                        Screen.Achievements.route
+                                    )
                                 },
                                 onProfileClick = {
-                                    navController.navigate(Screen.Settings.route)
+                                    navController.navigate(
+                                        Screen.Settings.route
+                                    )
                                 }
                             )
                         }
-                        composable(Screen.Achievements.route) {
+
+                        composable(
+                            Screen.Achievements.route
+                        ) {
+
                             AchievementsScreen(
                                 onNavigateHome = {
-                                    navController.navigate(Screen.ForemanHome.route) {
-                                        popUpTo(Screen.ForemanHome.route) { inclusive = true }
+                                    navController.navigate(
+                                        Screen.ForemanHome.route
+                                    ) {
+                                        popUpTo(
+                                            Screen.ForemanHome.route
+                                        ) {
+                                            inclusive = true
+                                        }
                                     }
                                 },
+
                                 onNavigateProfile = {
-                                    navController.navigate(Screen.Settings.route)
+                                    navController.navigate(
+                                        Screen.Settings.route
+                                    )
                                 }
                             )
                         }
-                        composable(Screen.Settings.route) {
+
+                        composable(
+                            Screen.Settings.route
+                        ) {
+
                             SettingsScreen(
-                                authViewModel = authViewModel,
+                                authViewModel =
+                                    authViewModel,
+
                                 onNavigateHome = {
-                                    navController.navigate(Screen.ForemanHome.route) {
-                                        popUpTo(Screen.ForemanHome.route) { inclusive = true }
+                                    navController.navigate(
+                                        Screen.ForemanHome.route
+                                    ) {
+                                        popUpTo(
+                                            Screen.ForemanHome.route
+                                        ) {
+                                            inclusive = true
+                                        }
                                     }
                                 },
+
                                 onNavigateAchievements = {
-                                    navController.navigate(Screen.Achievements.route) {
-                                        popUpTo(Screen.Achievements.route) { inclusive = true }
+                                    navController.navigate(
+                                        Screen.Achievements.route
+                                    ) {
+                                        popUpTo(
+                                            Screen.Achievements.route
+                                        ) {
+                                            inclusive = true
+                                        }
                                     }
                                 },
+
                                 onLogout = {
-                                    navController.navigate(Screen.Login.route) {
-                                        popUpTo(Screen.ForemanHome.route) { inclusive = true }
+                                    navController.navigate(
+                                        Screen.Login.route
+                                    ) {
+                                        popUpTo(
+                                            Screen.ForemanHome.route
+                                        ) {
+                                            inclusive = true
+                                        }
                                     }
                                 }
                             )
                         }
-                        composable(Screen.DailyUpdateForm.route) {
+
+                        composable(
+                            Screen.DailyUpdateForm.route
+                        ) {
+
                             DailyUpdateFormScreen(
-                                foremanViewModel = foremanViewModel,
-                                onBackClick = { navController.popBackStack() },
+                                foremanViewModel =
+                                    foremanViewModel,
+
+                                onBackClick = {
+                                    navController.popBackStack()
+                                },
+
                                 onSubmitSuccess = {
-                                    navController.navigate(Screen.UpdateSynced.route) {
-                                        popUpTo(Screen.DailyUpdateForm.route) { inclusive = true }
+                                    navController.navigate(
+                                        Screen.UpdateSynced.route
+                                    ) {
+                                        popUpTo(
+                                            Screen.DailyUpdateForm.route
+                                        ) {
+                                            inclusive = true
+                                        }
                                     }
                                 }
                             )
                         }
-                        composable(Screen.UpdateSynced.route) {
+
+                        composable(
+                            Screen.UpdateSynced.route
+                        ) {
+
                             UpdateSyncedScreen(
                                 onBackToSites = {
-                                    navController.navigate(Screen.ForemanHome.route) {
-                                        popUpTo(Screen.ForemanHome.route) { inclusive = true }
+                                    navController.navigate(
+                                        Screen.ForemanHome.route
+                                    ) {
+                                        popUpTo(
+                                            Screen.ForemanHome.route
+                                        ) {
+                                            inclusive = true
+                                        }
                                     }
                                 }
                             )
                         }
-                        composable(Screen.UpdateOffline.route) {
+
+                        composable(
+                            Screen.UpdateOffline.route
+                        ) {
+
                             UpdateOfflineScreen(
                                 onBackToSites = {
-                                    navController.navigate(Screen.ForemanHome.route) {
-                                        popUpTo(Screen.ForemanHome.route) { inclusive = true }
+                                    navController.navigate(
+                                        Screen.ForemanHome.route
+                                    ) {
+                                        popUpTo(
+                                            Screen.ForemanHome.route
+                                        ) {
+                                            inclusive = true
+                                        }
                                     }
                                 }
                             )
                         }
-                        composable(Screen.PlaceholderNext.route) {
+
+                        composable(
+                            Screen.PlaceholderNext.route
+                        ) {
+
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color(0xFF14171A)),
-                                contentAlignment = Alignment.Center
+                                    .background(
+                                        Color(0xFF14171A)
+                                    ),
+                                contentAlignment =
+                                    Alignment.Center
                             ) {
+
                                 Text(
                                     text = "Placeholder",
                                     color = Color.White,
