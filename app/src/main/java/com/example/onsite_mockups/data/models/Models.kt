@@ -1,4 +1,3 @@
-
 package com.example.onsite_mockups.data.models
 
 import kotlinx.serialization.SerialName
@@ -130,3 +129,17 @@ data class AssignmentRequest(
     val foremanId: String
 )
 
+@Serializable
+data class SiteForemanAssignment(
+    @SerialName("siteId")
+    val siteId: String,
+
+    @SerialName("siteName")
+    val siteName: String,
+
+    @SerialName("foremanId")
+    val foremanId: String,
+
+    @SerialName("foremanName")
+    val foremanName: String
+)
