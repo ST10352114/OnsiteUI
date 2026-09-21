@@ -19,6 +19,13 @@ android {
 
         testInstrumentationRunner =
             "androidx.test.runner.AndroidJUnitRunner"
+
+        // Load properties from gradle.properties or environment variables
+        val supabaseUrl = (project.findProperty("SUPABASE_URL") as? String) ?: System.getenv("SUPABASE_URL") ?: ""
+        val supabaseAnonKey = (project.findProperty("SUPABASE_ANON_KEY") as? String) ?: System.getenv("SUPABASE_ANON_KEY") ?: ""
+
+        buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"$supabaseAnonKey\"")
     }
 
     buildTypes {
@@ -39,6 +46,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -49,8 +57,6 @@ dependencies {
             libs.androidx.compose.bom
         )
     )
-
-
 
     implementation(
         libs.androidx.activity.compose
@@ -161,6 +167,11 @@ dependencies {
     testImplementation(
         libs.junit
     )
+
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
+    testImplementation(libs.androidx.core.testing)
 
     androidTestImplementation(
         platform(

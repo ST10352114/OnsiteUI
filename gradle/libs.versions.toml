@@ -13,6 +13,10 @@ ktor = "2.3.12"
 kotlinxSerialization = "1.7.3"
 kotlinxDatetime = "0.6.1"
 runtime = "1.12.1"
+mockk = "1.13.13"
+kotlinxCoroutinesTest = "1.10.1"
+turbine = "1.2.0"
+androidxCoreTesting = "2.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -38,6 +42,10 @@ ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref =
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinxDatetime" }
 androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
+turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
+androidx-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "androidxCoreTesting" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
