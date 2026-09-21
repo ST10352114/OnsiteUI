@@ -291,6 +291,13 @@ class MainActivity : FragmentActivity() {
                                     navController.navigate(
                                         Screen.Notifications.route
                                     )
+                                },
+
+                                onAlertsClick = {
+
+                                    navController.navigate(
+                                        Screen.Notifications.route
+                                    )
                                 }
                             )
                         }
@@ -322,6 +329,13 @@ class MainActivity : FragmentActivity() {
 
                                     navController.navigate(
                                         Screen.AdminSettings.route
+                                    )
+                                },
+
+                                onNavigateAlerts = {
+
+                                    navController.navigate(
+                                        Screen.Notifications.route
                                     )
                                 }
                             )
@@ -363,6 +377,13 @@ class MainActivity : FragmentActivity() {
                                                 true
                                         }
                                     }
+                                },
+
+                                onNavigateAlerts = {
+
+                                    navController.navigate(
+                                        Screen.Notifications.route
+                                    )
                                 },
 
                                 onLogout = {
@@ -454,6 +475,13 @@ class MainActivity : FragmentActivity() {
                                     navController.navigate(
                                         Screen.Notifications.route
                                     )
+                                },
+
+                                onAlertsClick = {
+
+                                    navController.navigate(
+                                        Screen.Notifications.route
+                                    )
                                 }
                             )
                         }
@@ -526,6 +554,13 @@ class MainActivity : FragmentActivity() {
                                                 true
                                         }
                                     }
+                                },
+
+                                onNavigateAlerts = {
+
+                                    navController.navigate(
+                                        Screen.Notifications.route
+                                    )
                                 },
 
                                 onLogout = {

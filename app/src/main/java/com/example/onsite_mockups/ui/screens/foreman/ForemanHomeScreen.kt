@@ -59,6 +59,7 @@ fun ForemanHomeScreen(
     onSiteClick: (String) -> Unit,
     onAchievementsClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
+    onAlertsClick: () -> Unit = {},
     onFilterClick: () -> Unit = {},
     onNotificationClick: () -> Unit = {}
 ) {
@@ -149,6 +150,7 @@ fun ForemanHomeScreen(
                     selected = selectedTab == 2,
                     onClick = {
                         selectedTab = 2
+                        onAlertsClick()
                     },
                     icon = {
                         Icon(
