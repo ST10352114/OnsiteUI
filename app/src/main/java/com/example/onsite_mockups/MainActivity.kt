@@ -417,11 +417,7 @@ class MainActivity : FragmentActivity() {
                                     navController.popBackStack()
                                 },
 
-                                onExportClick = {},
-
-                                onFlagForReviewClick = {
-                                    navController.popBackStack()
-                                }
+                                onExportClick = {}
                             )
                         }
 

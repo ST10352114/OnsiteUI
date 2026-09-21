@@ -1,5 +1,6 @@
 package com.example.onsite_mockups.ui.screens.admin
 
+import android.content.Context
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -36,21 +37,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import com.example.onsite_mockups.data.models.StaffMember
 import com.example.onsite_mockups.ui.screens.foreman.Chip
 import com.example.onsite_mockups.ui.screens.foreman.FormSectionTitle
 import com.example.onsite_mockups.ui.viewmodels.AdminViewModel
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import android.content.Intent
+import android.net.Uri
+import java.io.File
+import java.io.FileWriter
 
 @Composable
 fun AdminUpdateDetailScreen(
     adminViewModel: AdminViewModel,
     onBackClick: () -> Unit,
-    onExportClick: () -> Unit = {},
-    onFlagForReviewClick: () -> Unit = {}
+    onExportClick: () -> Unit = {}
 ) {
     val update by adminViewModel.selectedUpdate.collectAsState()
 
@@ -338,6 +344,8 @@ fun AdminUpdateDetailScreen(
                 }
             }
 
+            val context = LocalContext.current
+
             Surface(
                 modifier =
                     Modifier.fillMaxWidth(),
@@ -353,29 +361,34 @@ fun AdminUpdateDetailScreen(
                             .fillMaxWidth()
                             .padding(20.dp),
                     horizontalArrangement =
-                        Arrangement.spacedBy(12.dp)
+                        Arrangement.Center
                 ) {
 
-                    OutlinedButton(
-                        onClick =
-                            onExportClick,
+                    Button(
+                        onClick = {
+                            val siteUpdate = update
+                            if (siteUpdate != null) {
+                                exportToCsv(
+                                    context = context,
+                                    foremanName = foreman?.fullName ?: "Unknown",
+                                    date = siteUpdate.updateDate,
+                                    staff = staff,
+                                    powerTools = powerTools,
+                                    plantMachines = plantMachines
+                                )
+                            }
+                            onExportClick()
+                        },
                         modifier =
                             Modifier
-                                .weight(1f)
+                                .fillMaxWidth()
                                 .height(52.dp),
                         shape =
                             RoundedCornerShape(12.dp),
-                        border =
-                            BorderStroke(
-                                1.dp,
-                                Color(0xFFE0E0E0)
-                            ),
                         colors =
-                            ButtonDefaults
-                                .outlinedButtonColors(
-                                    containerColor =
-                                        Color.White
-                                )
+                            ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFFF6D00)
+                            )
                     ) {
 
                         Icon(
@@ -384,7 +397,7 @@ fun AdminUpdateDetailScreen(
                             contentDescription =
                                 "Export",
                             tint =
-                                Color(0xFF1A1D20),
+                                Color.White,
                             modifier =
                                 Modifier.size(18.dp)
                         )
@@ -396,36 +409,7 @@ fun AdminUpdateDetailScreen(
 
                         Text(
                             text =
-                                "Export",
-                            fontSize =
-                                15.sp,
-                            fontWeight =
-                                FontWeight.Bold,
-                            color =
-                                Color(0xFF1A1D20)
-                        )
-                    }
-
-                    Button(
-                        onClick =
-                            onFlagForReviewClick,
-                        modifier =
-                            Modifier
-                                .weight(1f)
-                                .height(52.dp),
-                        shape =
-                            RoundedCornerShape(12.dp),
-                        colors =
-                            ButtonDefaults
-                                .buttonColors(
-                                    containerColor =
-                                        Color(0xFF1A1D20)
-                                )
-                    ) {
-
-                        Text(
-                            text =
-                                "Flag for review",
+                                "Export to CSV",
                             fontSize =
                                 15.sp,
                             fontWeight =
@@ -682,6 +666,76 @@ private fun decodeStringList(
             .filter {
                 it.isNotBlank()
             }
+    }
+}
+
+private fun exportToCsv(
+    context: Context,
+    foremanName: String,
+    date: String,
+    staff: List<StaffMember>,
+    powerTools: List<String>,
+    plantMachines: List<String>
+) {
+    val csvContent = StringBuilder()
+    csvContent.append("OnSite Construction Management - Daily Report\n")
+    csvContent.append("Report Date:,$date\n")
+    csvContent.append("Foreman:,$foremanName\n\n")
+
+    csvContent.append("STAFF ON SITE\n")
+    csvContent.append("Name,Job Role\n")
+    if (staff.isEmpty()) {
+        csvContent.append("None,\n")
+    } else {
+        staff.forEach {
+            csvContent.append("${it.name},${it.job}\n")
+        }
+    }
+    csvContent.append("\n")
+
+    csvContent.append("POWER TOOLS USED\n")
+    if (powerTools.isEmpty()) {
+        csvContent.append("None\n")
+    } else {
+        powerTools.forEach {
+            csvContent.append("$it\n")
+        }
+    }
+    csvContent.append("\n")
+
+    csvContent.append("PLANT & MACHINERY\n")
+    if (plantMachines.isEmpty()) {
+        csvContent.append("None\n")
+    } else {
+        plantMachines.forEach {
+            csvContent.append("$it\n")
+        }
+    }
+
+    try {
+        val fileName = "OnSite_Report_${date.replace(":", "-").replace(" ", "_")}.csv"
+        val cacheFile = File(context.cacheDir, fileName)
+        val writer = FileWriter(cacheFile)
+        writer.write(csvContent.toString())
+        writer.close()
+
+        val contentUri: Uri = FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            cacheFile
+        )
+
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/csv"
+            putExtra(Intent.EXTRA_STREAM, contentUri)
+            putExtra(Intent.EXTRA_SUBJECT, "OnSite Daily Report - $date")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+
+        context.startActivity(Intent.createChooser(intent, "Share Report"))
+
+    } catch (e: Exception) {
+        e.printStackTrace()
     }
 }
 
