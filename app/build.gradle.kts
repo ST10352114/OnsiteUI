@@ -119,6 +119,9 @@ dependencies {
         "androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7"
     )
 
+    // Image Loading
+    implementation("io.coil-kt:coil-compose:2.7.0")
+
     // Serialization & Datetime
     implementation(
         libs.kotlinx.serialization.json

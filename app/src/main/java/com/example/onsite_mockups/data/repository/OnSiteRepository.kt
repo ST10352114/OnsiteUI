@@ -6,27 +6,35 @@ import com.example.onsite_mockups.data.models.NotificationPreferences
 import android.util.Log
 import com.example.onsite_mockups.data.models.AssignmentRequest
 import com.example.onsite_mockups.data.models.CreateProfileResponse
+import com.example.onsite_mockups.data.models.PhotoInput
 import com.example.onsite_mockups.data.models.Profile
 import com.example.onsite_mockups.data.models.Site
 import com.example.onsite_mockups.data.models.SiteEditRequest
 import com.example.onsite_mockups.data.models.SiteForemanAssignment
 import com.example.onsite_mockups.data.models.SiteUpdate
 import com.example.onsite_mockups.data.network.OnSiteApiService
-import com.example.onsite_mockups.data.network.PhotoInput
 import com.example.onsite_mockups.data.network.RetrofitClient
 import com.example.onsite_mockups.data.network.SiteUpdateRequest
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/**
+ * Repository class that acts as the single source of truth for all data in the application.
+ * It manages communication between the UI (ViewModels) and the network services (Retrofit and Supabase).
+ */
 object OnSiteRepository {
 
     private val api =
         RetrofitClient.apiService
 
+    /**
+     * The profile of the currently logged-in user.
+     */
     var currentProfile: Profile? = null
         private set
 
+    // In-memory caches for data
     private val profilesList =
         mutableListOf<Profile>()
 
@@ -39,6 +47,9 @@ object OnSiteRepository {
     private val siteUpdatesList =
         mutableListOf<SiteUpdate>()
 
+    /**
+     * Registers the current device's FCM token with the backend.
+     */
     suspend fun registerDeviceToken(
         token: String
     ) {
@@ -71,6 +82,9 @@ object OnSiteRepository {
         }
     }
 
+    /**
+     * Deactivates the given FCM token in the backend.
+     */
     suspend fun deactivateDeviceToken(
         token: String
     ) {
@@ -93,6 +107,9 @@ object OnSiteRepository {
         }
     }
 
+    /**
+     * Fetches all notifications for the current user.
+     */
     suspend fun getNotifications():
             List<NotificationModel> {
 
@@ -112,6 +129,9 @@ object OnSiteRepository {
         }
     }
 
+    /**
+     * Gets the current unread notification count.
+     */
     suspend fun getUnreadNotificationCount():
             Int {
 
@@ -132,6 +152,9 @@ object OnSiteRepository {
         }
     }
 
+    /**
+     * Marks a specific notification as read.
+     */
     suspend fun markNotificationRead(
         notificationId: String
     ) {
@@ -154,6 +177,9 @@ object OnSiteRepository {
         }
     }
 
+    /**
+     * Marks all notifications as read for the user.
+     */
     suspend fun markAllNotificationsRead() {
 
         try {
@@ -172,6 +198,9 @@ object OnSiteRepository {
         }
     }
 
+    /**
+     * Fetches the user's notification preferences.
+     */
     suspend fun getNotificationPreferences():
             NotificationPreferences {
 
@@ -191,6 +220,9 @@ object OnSiteRepository {
         }
     }
 
+    /**
+     * Updates whether push notifications are enabled for the user.
+     */
     suspend fun updateNotificationPreferences(
         enabled: Boolean
     ) {
@@ -215,17 +247,26 @@ object OnSiteRepository {
         }
     }
 
+    /**
+     * Updates the local cache of the current user's profile.
+     */
     fun setCurrentProfile(
         profile: Profile?
     ) {
         currentProfile = profile
     }
 
+    /**
+     * Clears local user data and tokens upon logout.
+     */
     fun logout() {
         currentProfile = null
         RetrofitClient.setToken(null)
     }
 
+    /**
+     * Fetches all user profiles, optionally filtered by role.
+     */
     suspend fun getProfiles(
         role: String? = null
     ): List<Profile> {
@@ -264,6 +305,9 @@ object OnSiteRepository {
         }
     }
 
+    /**
+     * Adds a new user profile (Administrator only).
+     */
     suspend fun addProfile(
         fullName: String,
         role: String,
@@ -314,6 +358,9 @@ object OnSiteRepository {
         }
     }
 
+    /**
+     * Fetches all construction sites.
+     */
     suspend fun getSites():
             List<Site> {
 
@@ -339,6 +386,9 @@ object OnSiteRepository {
         }
     }
 
+    /**
+     * Creates a new construction site.
+     */
     suspend fun addSite(
         name: String,
         address: String
@@ -384,6 +434,9 @@ object OnSiteRepository {
         }
     }
 
+    /**
+     * Updates an existing site's details.
+     */
     suspend fun updateSite(
         id: String,
         name: String,
@@ -434,6 +487,9 @@ object OnSiteRepository {
         }
     }
 
+    /**
+     * Fetches all site-foreman assignments.
+     */
     suspend fun getAssignments():
             List<SiteForemanAssignment> {
 
@@ -459,6 +515,9 @@ object OnSiteRepository {
         }
     }
 
+    /**
+     * Assigns a foreman to a site.
+     */
     suspend fun assignForemanToSite(
         siteId: String,
         foremanId: String
@@ -500,6 +559,9 @@ object OnSiteRepository {
         }
     }
 
+    /**
+     * Removes an assignment for a foreman from a site.
+     */
     suspend fun removeForemanFromSite(
         siteId: String,
         foremanId: String
@@ -520,6 +582,9 @@ object OnSiteRepository {
         }
     }
 
+    /**
+     * Fetches all site progress reports.
+     */
     suspend fun getSiteUpdates():
             List<SiteUpdate> {
 
@@ -545,6 +610,9 @@ object OnSiteRepository {
         }
     }
 
+    /**
+     * Checks if a progress report has already been submitted for a site today.
+     */
     suspend fun getTodaySiteUpdate(
         siteId: String
     ): SiteUpdate? {
@@ -605,6 +673,9 @@ object OnSiteRepository {
         }
     }
 
+    /**
+     * Submits a new daily site progress report.
+     */
     suspend fun addSiteUpdate(
         siteId: String,
         staffNames: String,

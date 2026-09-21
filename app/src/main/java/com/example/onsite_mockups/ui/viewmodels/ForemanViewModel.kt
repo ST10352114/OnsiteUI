@@ -2,21 +2,28 @@ package com.example.onsite_mockups.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.onsite_mockups.data.models.PhotoInput
 import com.example.onsite_mockups.data.models.Profile
 import com.example.onsite_mockups.data.models.Site
 import com.example.onsite_mockups.data.models.SiteUpdate
-import com.example.onsite_mockups.data.network.PhotoInput
 import com.example.onsite_mockups.data.repository.OnSiteRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel for Foreman-specific functions.
+ * Manages assigned sites and the submission of daily progress reports.
+ */
 class ForemanViewModel : ViewModel() {
 
     private val _foremanName =
         MutableStateFlow("Foreman")
 
+    /**
+     * Display name of the current foreman.
+     */
     val foremanName:
             StateFlow<String> =
         _foremanName.asStateFlow()
@@ -26,6 +33,9 @@ class ForemanViewModel : ViewModel() {
             emptyList()
         )
 
+    /**
+     * List of sites assigned to this foreman.
+     */
     val sites:
             StateFlow<List<Site>> =
         _sites.asStateFlow()
@@ -33,6 +43,9 @@ class ForemanViewModel : ViewModel() {
     private val _selectedSite =
         MutableStateFlow<Site?>(null)
 
+    /**
+     * Currently selected site for report submission.
+     */
     val selectedSite:
             StateFlow<Site?> =
         _selectedSite.asStateFlow()
@@ -42,6 +55,9 @@ class ForemanViewModel : ViewModel() {
             emptyList()
         )
 
+    /**
+     * History of updates submitted by this foreman.
+     */
     val updates:
             StateFlow<List<SiteUpdate>> =
         _updates.asStateFlow()
@@ -49,6 +65,9 @@ class ForemanViewModel : ViewModel() {
     private val _todayUpdate =
         MutableStateFlow<SiteUpdate?>(null)
 
+    /**
+     * Today's progress report for the selected site, if already submitted.
+     */
     val todayUpdate:
             StateFlow<SiteUpdate?> =
         _todayUpdate.asStateFlow()
@@ -56,6 +75,9 @@ class ForemanViewModel : ViewModel() {
     private val _isLoadingTodayUpdate =
         MutableStateFlow(false)
 
+    /**
+     * True if checking for today's existing update.
+     */
     val isLoadingTodayUpdate:
             StateFlow<Boolean> =
         _isLoadingTodayUpdate.asStateFlow()
@@ -63,6 +85,9 @@ class ForemanViewModel : ViewModel() {
     private val _isSubmitting =
         MutableStateFlow(false)
 
+    /**
+     * True if a report submission is in progress.
+     */
     val isSubmitting:
             StateFlow<Boolean> =
         _isSubmitting.asStateFlow()
@@ -70,10 +95,16 @@ class ForemanViewModel : ViewModel() {
     private val _errorMessage =
         MutableStateFlow<String?>(null)
 
+    /**
+     * Error message for UI display.
+     */
     val errorMessage:
             StateFlow<String?> =
         _errorMessage.asStateFlow()
 
+    /**
+     * Initializes the foreman's profile data in the ViewModel and Repository.
+     */
     fun setForemanProfile(
         profile: Profile?
     ) {
@@ -92,6 +123,9 @@ class ForemanViewModel : ViewModel() {
         )
     }
 
+    /**
+     * Loads assigned sites and update history for the foreman.
+     */
     fun loadForemanData() {
 
         viewModelScope.launch {
@@ -113,6 +147,9 @@ class ForemanViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Selects a site to view details or submit an update.
+     */
     fun selectSite(
         siteId: String
     ) {
@@ -132,13 +169,9 @@ class ForemanViewModel : ViewModel() {
             null
     }
 
-    /*
-     * Loads today's update synchronously from the
-     * calling coroutine.
-     *
-     * DailyUpdateFormScreen calls this from LaunchedEffect,
-     * so the screen waits until the API request has actually
-     * completed before populating the form.
+    /**
+     * Checks if a report has already been submitted for the given site today.
+     * Called synchronously from a LaunchedEffect in the UI.
      */
     suspend fun loadTodayUpdate(
         siteId: String
@@ -192,6 +225,9 @@ class ForemanViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Submits a new daily progress report for the selected site.
+     */
     fun submitDailyUpdate(
         staffNames: String,
         powerTools: String,
@@ -222,6 +258,7 @@ class ForemanViewModel : ViewModel() {
 
             try {
 
+                // Submit the update to the repository/API
                 val response =
                     OnSiteRepository
                         .addSiteUpdate(
@@ -242,6 +279,7 @@ class ForemanViewModel : ViewModel() {
                 _todayUpdate.value =
                     response
 
+                // Refresh the list of all updates
                 _updates.value =
                     OnSiteRepository
                         .getSiteUpdates()
@@ -262,6 +300,9 @@ class ForemanViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Clears the current error message.
+     */
     fun clearError() {
         _errorMessage.value = null
     }

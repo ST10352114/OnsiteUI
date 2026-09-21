@@ -51,6 +51,10 @@ import androidx.compose.ui.unit.sp
 import com.example.onsite_mockups.ui.viewmodels.AdminViewModel
 import androidx.compose.runtime.collectAsState
 
+/**
+ * The main entry screen for Administrators.
+ * Provides a high-level overview of construction site activity and navigation to management tools.
+ */
 @Composable
 fun AdminDashboardScreen(
     adminViewModel: AdminViewModel,
@@ -61,10 +65,14 @@ fun AdminDashboardScreen(
     onAlertsClick: () -> Unit = {},
     onProfileClick: () -> Unit = {}
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) } // Dashboard tab selected
+    // UI state for bottom navigation
+    var selectedTab by remember { mutableIntStateOf(0) }
+    
+    // Data flows from the ViewModel
     val sites by adminViewModel.sites.collectAsState()
     val updates by adminViewModel.updates.collectAsState()
 
+    // Refresh data on screen entry
     LaunchedEffect(Unit) {
         adminViewModel.loadAdminData()
     }
@@ -72,10 +80,12 @@ fun AdminDashboardScreen(
     Scaffold(
         containerColor = Color(0xFFF9F9FB),
         bottomBar = {
+            // Standard bottom navigation bar
             NavigationBar(
                 containerColor = Color.White,
                 tonalElevation = 8.dp
             ) {
+                // Dashboard Tab
                 NavigationBarItem(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
@@ -89,6 +99,7 @@ fun AdminDashboardScreen(
                         indicatorColor = Color.Transparent
                     )
                 )
+                // Sites & Crew Tab
                 NavigationBarItem(
                     selected = selectedTab == 1,
                     onClick = {
@@ -105,6 +116,7 @@ fun AdminDashboardScreen(
                         indicatorColor = Color.Transparent
                     )
                 )
+                // Alerts/Notifications Tab
                 NavigationBarItem(
                     selected = selectedTab == 2,
                     onClick = {
@@ -121,6 +133,7 @@ fun AdminDashboardScreen(
                         indicatorColor = Color.Transparent
                     )
                 )
+                // Profile/Settings Tab
                 NavigationBarItem(
                     selected = selectedTab == 3,
                     onClick = {
@@ -149,7 +162,8 @@ fun AdminDashboardScreen(
         ) {
             item {
                 Spacer(modifier = Modifier.height(16.dp))
-                // Header & Notification Bell
+                
+                // Toolbar with branding and notification bell
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -172,7 +186,7 @@ fun AdminDashboardScreen(
                         )
                     }
 
-                    // Notification Bell with Badge "5"
+                    // Notification bell with unread badge
                     Box(
                         modifier = Modifier
                             .size(44.dp)
@@ -207,12 +221,12 @@ fun AdminDashboardScreen(
             }
 
             item {
-                // Three Summary Tiles
+                // Statistical Summary Tiles
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // Tile 1: Total sites (14)
+                    // Total managed sites
                     Card(
                         modifier = Modifier
                             .weight(1f)
@@ -244,7 +258,7 @@ fun AdminDashboardScreen(
                         }
                     }
 
-                    // Tile 2: Updated today
+                    // Reports submitted today
                     Card(
                         modifier = Modifier
                             .weight(1f)
@@ -276,7 +290,7 @@ fun AdminDashboardScreen(
                         }
                     }
 
-                    // Tile 3: Pending
+                    // Sites pending submission
                     Card(
                         modifier = Modifier
                             .weight(1f)
@@ -311,7 +325,7 @@ fun AdminDashboardScreen(
             }
 
             item {
-                // Search & Filter Bar + Export button
+                // Global Search and Export buttons
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -345,7 +359,7 @@ fun AdminDashboardScreen(
                         }
                     }
 
-                    // Export Icon Button
+                    // Global export button
                     Surface(
                         modifier = Modifier
                             .size(44.dp)
@@ -376,7 +390,7 @@ fun AdminDashboardScreen(
                 )
             }
 
-            // Dynamic Updates List
+            // List of updates for the day across all managed sites
             items(sites.size) { index ->
                 val site = sites[index]
                 val update = updates.find { it.siteId == site.id }
@@ -398,6 +412,9 @@ fun AdminDashboardScreen(
     }
 }
 
+/**
+ * Card representing an individual site's update status in the administrator list.
+ */
 @Composable
 fun AdminUpdateCard(
     title: String,
@@ -425,7 +442,7 @@ fun AdminUpdateCard(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.weight(1f)
             ) {
-                // Location Icon Box
+                // Location iconography
                 Box(
                     modifier = Modifier
                         .size(38.dp)
@@ -459,7 +476,7 @@ fun AdminUpdateCard(
                 }
             }
 
-            // Badge
+            // Completion status badge
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))

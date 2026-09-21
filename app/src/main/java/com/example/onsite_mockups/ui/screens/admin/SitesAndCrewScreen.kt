@@ -42,6 +42,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -64,6 +65,10 @@ import com.example.onsite_mockups.data.models.Site
 import com.example.onsite_mockups.data.models.SiteForemanAssignment
 import com.example.onsite_mockups.ui.viewmodels.AdminViewModel
 
+/**
+ * Screen for managing construction sites, foremen, and their assignments.
+ * Administrators can add new sites, register foremen, and link them to projects.
+ */
 @Composable
 fun SitesAndCrewScreen(
     adminViewModel: AdminViewModel,
@@ -71,14 +76,17 @@ fun SitesAndCrewScreen(
     onNavigateAlerts: () -> Unit = {},
     onNavigateProfile: () -> Unit = {}
 ) {
+    // Current tab selection for the bottom navigation
     var selectedTab by remember {
         mutableIntStateOf(0)
     }
 
+    // Current tab for the application-wide bottom bar
     var navTab by remember {
         mutableIntStateOf(1)
     }
 
+    // Modal control for adding new entities
     var showAddSiteDialog by remember {
         mutableStateOf(false)
     }
@@ -98,6 +106,7 @@ fun SitesAndCrewScreen(
         mutableStateOf<Site?>(null)
     }
 
+    // Observe data from the ViewModel
     val sites by adminViewModel.sites.collectAsState()
     val foremen by adminViewModel.foremen.collectAsState()
     val assignments by adminViewModel.assignments.collectAsState()
@@ -105,10 +114,12 @@ fun SitesAndCrewScreen(
     val errorMessage by adminViewModel.errorMessage.collectAsState()
     val successMessage by adminViewModel.successMessage.collectAsState()
 
+    // Refresh data on screen entry
     LaunchedEffect(Unit) {
         adminViewModel.loadAdminData()
     }
 
+    // Automatically close dialogs on success
     LaunchedEffect(successMessage) {
         if (successMessage != null) {
             showAddSiteDialog = false
@@ -122,6 +133,7 @@ fun SitesAndCrewScreen(
     Scaffold(
         containerColor = Color(0xFFF9F9FB),
         bottomBar = {
+            // Standard Bottom Navigation
             NavigationBar(
                 containerColor = Color.White,
                 tonalElevation = 8.dp
@@ -243,6 +255,7 @@ fun SitesAndCrewScreen(
                 )
             }
 
+            // Segmented toggle between Sites and Foremen views
             item {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
@@ -339,7 +352,7 @@ fun SitesAndCrewScreen(
             }
 
             if (selectedTab == 0) {
-
+                // List of construction sites
                 items(
                     items = sites,
                     key = {
@@ -363,6 +376,7 @@ fun SitesAndCrewScreen(
                     )
                 }
 
+                // Call-to-action buttons for Sites
                 item {
                     AddButton(
                         text = "Assign foreman to site",
@@ -385,7 +399,7 @@ fun SitesAndCrewScreen(
                 }
 
             } else {
-
+                // List of user profiles (Foremen)
                 items(
                     items = foremen,
                     key = {
@@ -412,6 +426,7 @@ fun SitesAndCrewScreen(
                     )
                 }
 
+                // Call-to-action button for Foremen
                 item {
                     AddButton(
                         text = "Add new foreman",
@@ -423,6 +438,7 @@ fun SitesAndCrewScreen(
                 }
             }
 
+            // Inline error notification
             if (errorMessage != null) {
                 item {
                     Card(
@@ -449,6 +465,7 @@ fun SitesAndCrewScreen(
                 }
             }
 
+            // Inline success notification
             if (successMessage != null) {
                 item {
                     Card(
@@ -483,6 +500,7 @@ fun SitesAndCrewScreen(
         }
     }
 
+    // Dialog management logic
     if (showAddSiteDialog) {
         AddSiteDialog(
             isSaving = isSaving,
@@ -564,6 +582,9 @@ fun SitesAndCrewScreen(
     }
 }
 
+/**
+ * Modal to edit an existing construction site.
+ */
 @Composable
 private fun EditSiteDialog(
     site: Site,
@@ -669,7 +690,7 @@ private fun EditSiteDialog(
                         )
                     }
 
-                    androidx.compose.material3.Switch(
+                    Switch(
                         checked = isActive,
                         onCheckedChange = {
                             isActive = it
@@ -738,6 +759,9 @@ private fun navigationColors() =
             Color.Transparent
     )
 
+/**
+ * Large outline button for primary creation actions.
+ */
 @Composable
 private fun AddButton(
     text: String,
@@ -795,6 +819,9 @@ private fun AddButton(
     }
 }
 
+/**
+ * Modal to add a new construction site.
+ */
 @Composable
 private fun AddSiteDialog(
     isSaving: Boolean,
@@ -897,6 +924,9 @@ private fun AddSiteDialog(
     )
 }
 
+/**
+ * Modal to register a new foreman profile.
+ */
 @Composable
 private fun AddForemanDialog(
     isSaving: Boolean,
@@ -999,6 +1029,9 @@ private fun AddForemanDialog(
     )
 }
 
+/**
+ * Modal to link a foreman to a specific site.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AssignForemanDialog(
@@ -1326,6 +1359,9 @@ private fun AssignForemanDialog(
     )
 }
 
+/**
+ * Card representing a construction site in the management list.
+ */
 @Composable
 private fun SiteManagementCard(
     site: Site,
@@ -1553,6 +1589,9 @@ private fun SiteManagementCard(
     }
 }
 
+/**
+ * Card representing a foreman profile in the management list.
+ */
 @Composable
 private fun ForemanManagementCard(
     name: String,

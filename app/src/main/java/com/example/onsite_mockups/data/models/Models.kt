@@ -3,16 +3,19 @@ package com.example.onsite_mockups.data.models
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * Data model representing a user profile in the OnSite system.
+ */
 @Serializable
 data class Profile(
     @SerialName("id")
-    val id: String? = null,
+    val id: String? = null, // Supabase user ID
 
     @SerialName("fullName")
     val fullName: String? = null,
 
     @SerialName("role")
-    val role: String? = null,
+    val role: String? = null, // "admin" or "foreman"
 
     @SerialName("email")
     val email: String? = null,
@@ -24,21 +27,27 @@ data class Profile(
     val isActive: Boolean = true,
 
     @SerialName("password")
-    val password: String? = null,
+    val password: String? = null, // Used during creation/login
 
     @SerialName("createdAt")
     val createdAt: String? = null
 )
 
+/**
+ * Response received when a new profile is successfully created.
+ */
 @Serializable
 data class CreateProfileResponse(
     @SerialName("profile")
     val profile: Profile,
 
     @SerialName("temporaryPassword")
-    val temporaryPassword: String
+    val temporaryPassword: String // Generated password for the new user
 )
 
+/**
+ * Data model for a construction site.
+ */
 @Serializable
 data class Site(
     @SerialName("id")
@@ -60,6 +69,9 @@ data class Site(
     val status: String? = null
 )
 
+/**
+ * Request object for editing an existing site.
+ */
 @Serializable
 data class SiteEditRequest(
     @SerialName("name")
@@ -72,6 +84,9 @@ data class SiteEditRequest(
     val isActive: Boolean? = null
 )
 
+/**
+ * Data model for a daily site update submitted by a foreman.
+ */
 @Serializable
 data class SiteUpdate(
     @SerialName("id")
@@ -102,13 +117,13 @@ data class SiteUpdate(
     val actualLabor: Int,
 
     @SerialName("staffNames")
-    val staffNames: String? = null,
+    val staffNames: String? = null, // JSON string of StaffMember list
 
     @SerialName("powerTools")
-    val powerTools: String? = null,
+    val powerTools: String? = null, // JSON string of tool names
 
     @SerialName("plantMachines")
-    val plantMachines: String? = null,
+    val plantMachines: String? = null, // JSON string of machine names
 
     @SerialName("notes")
     val notes: String? = null,
@@ -120,9 +135,12 @@ data class SiteUpdate(
     val updatePhotos: List<UpdatePhoto> = emptyList(),
 
     @SerialName("variance")
-    val variance: Int? = null
+    val variance: Int? = null // Difference between forecasted and actual labor
 )
 
+/**
+ * Data model for a photo attached to a site update.
+ */
 @Serializable
 data class UpdatePhoto(
     @SerialName("id")
@@ -132,7 +150,7 @@ data class UpdatePhoto(
     val updateId: String? = null,
 
     @SerialName("photoData")
-    val photoData: String,
+    val photoData: String, // Base64 encoded image data
 
     @SerialName("caption")
     val caption: String? = null,
@@ -141,6 +159,9 @@ data class UpdatePhoto(
     val createdAt: String? = null
 )
 
+/**
+ * Request to assign a foreman to a site.
+ */
 @Serializable
 data class AssignmentRequest(
     @SerialName("siteId")
@@ -150,6 +171,9 @@ data class AssignmentRequest(
     val foremanId: String
 )
 
+/**
+ * Represents a foreman assigned to a specific site.
+ */
 @Serializable
 data class SiteForemanAssignment(
     @SerialName("siteId")
@@ -165,6 +189,9 @@ data class SiteForemanAssignment(
     val foremanName: String
 )
 
+/**
+ * Represents a staff member on site.
+ */
 @Serializable
 data class StaffMember(
     @SerialName("name")
@@ -172,7 +199,21 @@ data class StaffMember(
 
     @SerialName("job")
     val job: String
-)@Serializable
+)
+
+/**
+ * Data for a single photo in an update submission.
+ */
+@Serializable
+data class PhotoInput(
+    val fileName: String,
+    val base64Data: String
+)
+
+/**
+ * Data model for an in-app notification.
+ */
+@Serializable
 data class NotificationModel(
     @SerialName("id")
     val id: String,
@@ -187,7 +228,7 @@ data class NotificationModel(
     val message: String,
 
     @SerialName("data")
-    val data: String = "{}",
+    val data: String = "{}", // Extra data for navigation/actions
 
     @SerialName("isRead")
     val isRead: Boolean = false,
@@ -196,24 +237,36 @@ data class NotificationModel(
     val createdAt: String
 )
 
+/**
+ * Response for unread notification count.
+ */
 @Serializable
 data class UnreadNotificationCount(
     @SerialName("count")
     val count: Int
 )
 
+/**
+ * User preferences for notifications.
+ */
 @Serializable
 data class NotificationPreferences(
     @SerialName("pushEnabled")
     val pushEnabled: Boolean
 )
 
+/**
+ * Request to update notification preferences.
+ */
 @Serializable
 data class NotificationPreferenceRequest(
     @SerialName("pushEnabled")
     val pushEnabled: Boolean
 )
 
+/**
+ * Request to register or deactivate a device FCM token.
+ */
 @Serializable
 data class DeviceTokenRequest(
     @SerialName("token")

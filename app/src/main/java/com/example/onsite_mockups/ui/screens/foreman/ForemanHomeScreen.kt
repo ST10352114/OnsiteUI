@@ -1,13 +1,10 @@
 package com.example.onsite_mockups.ui.screens.foreman
-import com.example.onsite_mockups.data.models.Profile
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,11 +17,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -32,8 +31,8 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -48,29 +47,34 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.onsite_mockups.data.models.Profile
 import com.example.onsite_mockups.ui.viewmodels.ForemanViewModel
 
-
-
+/**
+ * Main screen for foremen. Shows assigned construction sites and provides quick access
+ * to achievements and profile settings.
+ */
 @Composable
 fun ForemanHomeScreen(
     foremanViewModel: ForemanViewModel,
     profile: Profile?,
-    onSiteClick: (String) -> Unit,
+    onNotificationClick: () -> Unit = {},
+    onSiteClick: (String) -> Unit = {},
     onAchievementsClick: () -> Unit = {},
-    onProfileClick: () -> Unit = {},
     onAlertsClick: () -> Unit = {},
-    onFilterClick: () -> Unit = {},
-    onNotificationClick: () -> Unit = {}
+    onProfileClick: () -> Unit = {}
 ) {
-    var selectedTab by remember {
+    // Current bottom navigation tab selection
+    var navTab by remember {
         mutableIntStateOf(0)
     }
-    val foremanName by
-    foremanViewModel.foremanName.collectAsState()
+
+    // Observe data from ViewModel
+    val foremanName by foremanViewModel.foremanName.collectAsState()
     val sites by foremanViewModel.sites.collectAsState()
     val updates by foremanViewModel.updates.collectAsState()
 
+    // Refresh assigned sites on screen entry
     LaunchedEffect(Unit) {
         foremanViewModel.loadForemanData()
     }
@@ -82,14 +86,15 @@ fun ForemanHomeScreen(
                 containerColor = Color.White,
                 tonalElevation = 8.dp
             ) {
+                // Navigation items
                 NavigationBarItem(
-                    selected = selectedTab == 0,
+                    selected = navTab == 0,
                     onClick = {
-                        selectedTab = 0
+                        navTab = 0
                     },
                     icon = {
                         Icon(
-                            Icons.Default.Home,
+                            Icons.Default.GridView,
                             contentDescription = "Home"
                         )
                     },
@@ -99,89 +104,34 @@ fun ForemanHomeScreen(
                             fontSize = 11.sp
                         )
                     },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor =
-                            Color(0xFFFF6D00),
-                        selectedTextColor =
-                            Color(0xFFFF6D00),
-                        unselectedIconColor =
-                            Color(0xFF9AA0A6),
-                        unselectedTextColor =
-                            Color(0xFF9AA0A6),
-                        indicatorColor =
-                            Color.Transparent
-                    )
+                    colors = navigationColors()
                 )
 
                 NavigationBarItem(
-                    selected = selectedTab == 1,
+                    selected = navTab == 1,
                     onClick = {
-                        selectedTab = 1
+                        navTab = 1
                         onAchievementsClick()
                     },
                     icon = {
                         Icon(
                             Icons.Default.EmojiEvents,
-                            contentDescription =
-                                "Achievements"
+                            contentDescription = "Achievements"
                         )
                     },
                     label = {
                         Text(
-                            "Achievements",
+                            "Awards",
                             fontSize = 11.sp
                         )
                     },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor =
-                            Color(0xFFFF6D00),
-                        selectedTextColor =
-                            Color(0xFFFF6D00),
-                        unselectedIconColor =
-                            Color(0xFF9AA0A6),
-                        unselectedTextColor =
-                            Color(0xFF9AA0A6),
-                        indicatorColor =
-                            Color.Transparent
-                    )
+                    colors = navigationColors()
                 )
 
                 NavigationBarItem(
-                    selected = selectedTab == 2,
+                    selected = navTab == 2,
                     onClick = {
-                        selectedTab = 2
-                        onAlertsClick()
-                    },
-                    icon = {
-                        Icon(
-                            Icons.Default.Notifications,
-                            contentDescription = "Alerts"
-                        )
-                    },
-                    label = {
-                        Text(
-                            "Alerts",
-                            fontSize = 11.sp
-                        )
-                    },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor =
-                            Color(0xFFFF6D00),
-                        selectedTextColor =
-                            Color(0xFFFF6D00),
-                        unselectedIconColor =
-                            Color(0xFF9AA0A6),
-                        unselectedTextColor =
-                            Color(0xFF9AA0A6),
-                        indicatorColor =
-                            Color.Transparent
-                    )
-                )
-
-                NavigationBarItem(
-                    selected = selectedTab == 3,
-                    onClick = {
-                        selectedTab = 3
+                        navTab = 2
                         onProfileClick()
                     },
                     icon = {
@@ -196,27 +146,12 @@ fun ForemanHomeScreen(
                             fontSize = 11.sp
                         )
                     },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor =
-                            Color(0xFFFF6D00),
-                        selectedTextColor =
-                            Color(0xFFFF6D00),
-                        unselectedIconColor =
-                            Color(0xFF9AA0A6),
-                        unselectedTextColor =
-                            Color(0xFF9AA0A6),
-                        indicatorColor =
-                            Color.Transparent
-                    )
+                    colors = navigationColors()
                 )
             }
         }
     ) { innerPadding ->
-        val today =
-            SimpleDateFormat(
-                "yyyy-MM-dd",
-                Locale.US
-            ).format(Date())
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -228,11 +163,14 @@ fun ForemanHomeScreen(
 
             item {
                 Spacer(
-                    modifier = Modifier.height(16.dp)
+                    modifier =
+                        Modifier.height(16.dp)
                 )
 
+                // Greeting Header
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier =
+                        Modifier.fillMaxWidth(),
                     horizontalArrangement =
                         Arrangement.SpaceBetween,
                     verticalAlignment =
@@ -242,8 +180,10 @@ fun ForemanHomeScreen(
                         Text(
                             text = "GOOD MORNING",
                             fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF9AA0A6),
+                            fontWeight =
+                                FontWeight.Bold,
+                            color =
+                                Color(0xFF9AA0A6),
                             letterSpacing = 1.sp
                         )
 
@@ -253,25 +193,32 @@ fun ForemanHomeScreen(
                         )
 
                         Text(
-                            text = profile?.fullName?.takeIf { it.isNotBlank() }
-                                ?: "Foreman",
+                            text = "Hi, $foremanName",
                             fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1A1D20)
+                            fontWeight =
+                                FontWeight.Bold,
+                            color =
+                                Color(0xFF1A1D20)
                         )
                     }
 
+                    // Notification Entry with Badge
                     Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .clip(
-                                RoundedCornerShape(12.dp)
-                            )
-                            .background(Color.White)
-                            .clickable(
-                                onClick =
-                                    onNotificationClick
-                            ),
+                        modifier =
+                            Modifier
+                                .size(44.dp)
+                                .clip(
+                                    RoundedCornerShape(
+                                        12.dp
+                                    )
+                                )
+                                .background(
+                                    Color.White
+                                )
+                                .clickable(
+                                    onClick =
+                                        onNotificationClick
+                                ),
                         contentAlignment =
                             Alignment.Center
                     ) {
@@ -287,23 +234,29 @@ fun ForemanHomeScreen(
                         )
 
                         Box(
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(
-                                    top = 8.dp,
-                                    end = 8.dp
-                                )
-                                .size(16.dp)
-                                .background(
-                                    Color(0xFFFF6D00),
-                                    CircleShape
-                                ),
+                            modifier =
+                                Modifier
+                                    .align(
+                                        Alignment.TopEnd
+                                    )
+                                    .padding(
+                                        top = 8.dp,
+                                        end = 8.dp
+                                    )
+                                    .size(16.dp)
+                                    .background(
+                                        Color(
+                                            0xFFFF6D00
+                                        ),
+                                        CircleShape
+                                    ),
                             contentAlignment =
                                 Alignment.Center
                         ) {
                             Text(
                                 text = "2",
-                                color = Color.White,
+                                color =
+                                    Color.White,
                                 fontSize = 10.sp,
                                 fontWeight =
                                     FontWeight.Bold
@@ -313,186 +266,72 @@ fun ForemanHomeScreen(
                 }
             }
 
+            // Quick Search Mockup
             item {
-                Row(
+                Surface(
                     modifier =
-                        Modifier.fillMaxWidth(),
-                    horizontalArrangement =
-                        Arrangement.spacedBy(12.dp)
+                        Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                    shape =
+                        RoundedCornerShape(14.dp),
+                    color = Color.White
                 ) {
-                    Card(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(84.dp),
-                        shape =
-                            RoundedCornerShape(16.dp),
-                        colors =
-                            CardDefaults.cardColors(
-                                containerColor =
-                                    Color(0xFFFFF8E1)
-                            ),
-                        elevation =
-                            CardDefaults.cardElevation(
-                                defaultElevation = 0.dp
-                            )
-                    ) {
-                        Column(
-                            modifier = Modifier
+                    Row(
+                        modifier =
+                            Modifier
                                 .fillMaxSize()
-                                .padding(12.dp),
-                            horizontalAlignment =
-                                Alignment.CenterHorizontally,
-                            verticalArrangement =
-                                Arrangement.Center
-                        ) {
-                            Text(
-                                text =
-                                    sites.size.toString(),
-                                fontSize = 24.sp,
-                                fontWeight =
-                                    FontWeight.Bold,
-                                color =
-                                    Color(0xFF1A1D20)
-                            )
-
-                            Spacer(
-                                modifier =
-                                    Modifier.height(2.dp)
-                            )
-
-                            Text(
-                                text = "Assigned sites",
-                                fontSize = 12.sp,
-                                color =
-                                    Color(0xFF6C757D),
-                                fontWeight =
-                                    FontWeight.Medium
-                            )
-                        }
-                    }
-
-                    Card(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(84.dp),
-                        shape =
-                            RoundedCornerShape(16.dp),
-                        colors =
-                            CardDefaults.cardColors(
-                                containerColor =
-                                    Color(0xFFE8F5E9)
-                            ),
-                        elevation =
-                            CardDefaults.cardElevation(
-                                defaultElevation = 0.dp
-                            )
+                                .padding(
+                                    horizontal = 16.dp
+                                ),
+                        verticalAlignment =
+                            Alignment.CenterVertically
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(12.dp),
-                            horizontalAlignment =
-                                Alignment.CenterHorizontally,
-                            verticalArrangement =
-                                Arrangement.Center
-                        ) {
-                            Text(
-                                text =
-                                    updates.size.toString(),
-                                fontSize = 24.sp,
-                                fontWeight =
-                                    FontWeight.Bold,
-                                color =
-                                    Color(0xFF2E7D32)
-                            )
+                        Icon(
+                            imageVector =
+                                Icons.Default.Search,
+                            contentDescription =
+                                "Search",
+                            tint =
+                                Color(0xFF9AA0A6),
+                            modifier =
+                                Modifier.size(20.dp)
+                        )
 
-                            Spacer(
-                                modifier =
-                                    Modifier.height(2.dp)
-                            )
+                        Spacer(
+                            modifier =
+                                Modifier.width(12.dp)
+                        )
 
-                            Text(
-                                text = "Submitted today",
-                                fontSize = 12.sp,
-                                color =
-                                    Color(0xFF6C757D),
-                                fontWeight =
-                                    FontWeight.Medium
-                            )
-                        }
-                    }
-                }
-            }
-
-            item {
-                Spacer(
-                    modifier = Modifier.height(4.dp)
-                )
-
-                Row(
-                    modifier =
-                        Modifier.fillMaxWidth(),
-                    horizontalArrangement =
-                        Arrangement.SpaceBetween,
-                    verticalAlignment =
-                        Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "MY SITES",
-                        fontSize = 12.sp,
-                        fontWeight =
-                            FontWeight.Bold,
-                        color =
-                            Color(0xFF9AA0A6),
-                        letterSpacing = 1.sp
-                    )
-
-                    TextButton(
-                        onClick = onFilterClick
-                    ) {
                         Text(
-                            text = "Filter",
-                            fontSize = 13.sp,
-                            fontWeight =
-                                FontWeight.Bold,
-                            color =
-                                Color(0xFFFF6D00)
+                            text = "Search assigned sites...",
+                            fontSize = 14.sp,
+                            color = Color(0xFF9AA0A6)
                         )
                     }
                 }
             }
 
+            item {
+                Text(
+                    text = "MY ASSIGNED SITES",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF9AA0A6),
+                    letterSpacing = 1.sp
+                )
+            }
+
+            // List of sites foreman is responsible for
             items(sites.size) { index ->
                 val site = sites[index]
-
-                val isSubmitted =
-                    updates.any {
-                        it.siteId == site.id &&
-                                it.updateDate.startsWith(today)
-                    }
-
+                val update = updates.find { it.siteId == site.id }
+                val isDone = update != null
                 SiteCard(
                     title = site.name,
-                    address = site.address,
-                    statusText =
-                        if (isSubmitted) {
-                            "Submitted"
-                        } else {
-                            "Needs update"
-                        },
-                    isSubmitted =
-                        isSubmitted,
-                    footerText =
-                        if (isSubmitted) {
-                            "Submitted today"
-                        } else {
-                            "Last update: Yesterday"
-                        },
-                    onClick = {
-                        onSiteClick(
-                            site.id ?: ""
-                        )
-                    }
+                    subtitle = site.address,
+                    isDone = isDone,
+                    onClick = { onSiteClick(site.id ?: "") }
                 )
             }
 
@@ -505,170 +344,93 @@ fun ForemanHomeScreen(
     }
 }
 
+/**
+ * Renders a construction site item in the foreman list.
+ * Highlights if the daily update has already been completed.
+ */
 @Composable
-fun SiteCard(
+private fun SiteCard(
     title: String,
-    address: String,
-    statusText: String,
-    isSubmitted: Boolean,
-    footerText: String,
+    subtitle: String,
+    isDone: Boolean,
     onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(
-                onClick = onClick
-            ),
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
-        colors =
-            CardDefaults.cardColors(
-                containerColor = Color.White
-            ),
-        elevation =
-            CardDefaults.cardElevation(
-                defaultElevation = 1.dp
-            )
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Row(
-                modifier =
-                    Modifier.fillMaxWidth(),
-                horizontalArrangement =
-                    Arrangement.SpaceBetween,
-                verticalAlignment =
-                    Alignment.Top
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
             ) {
-                Row(
-                    modifier =
-                        Modifier.weight(1f),
-                    verticalAlignment =
-                        Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(38.dp)
-                            .clip(
-                                RoundedCornerShape(
-                                    10.dp
-                                )
-                            )
-                            .background(
-                                Color(0xFFFFF8E1)
-                            ),
-                        contentAlignment =
-                            Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector =
-                                Icons.Default.LocationOn,
-                            contentDescription =
-                                "Location",
-                            tint =
-                                Color(0xFFFF6D00),
-                            modifier =
-                                Modifier.size(20.dp)
-                        )
-                    }
-
-                    Spacer(
-                        modifier =
-                            Modifier.width(12.dp)
-                    )
-
-                    Column {
-                        Text(
-                            text = title,
-                            fontSize = 15.sp,
-                            fontWeight =
-                                FontWeight.Bold,
-                            color =
-                                Color(0xFF1A1D20)
-                        )
-
-                        Spacer(
-                            modifier =
-                                Modifier.height(2.dp)
-                        )
-
-                        Text(
-                            text = address,
-                            fontSize = 12.sp,
-                            color =
-                                Color(0xFF6C757D)
-                        )
-                    }
-                }
-
+                // Location icon box
                 Box(
                     modifier = Modifier
-                        .clip(
-                            RoundedCornerShape(8.dp)
-                        )
-                        .background(
-                            if (isSubmitted) {
-                                Color(0xFFE8F5E9)
-                            } else {
-                                Color(0xFFFFF3E0)
-                            }
-                        )
-                        .padding(
-                            horizontal = 8.dp,
-                            vertical = 4.dp
-                        )
+                        .size(38.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color(0xFFF1F3F5)),
+                    contentAlignment = Alignment.Center
                 ) {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = "Location",
+                        tint = Color(0xFF495057),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column {
                     Text(
-                        text =
-                            if (isSubmitted) {
-                                "✓$statusText"
-                            } else {
-                                "•$statusText"
-                            },
-                        fontSize = 11.sp,
-                        fontWeight =
-                            FontWeight.Bold,
-                        color =
-                            if (isSubmitted) {
-                                Color(0xFF2E7D32)
-                            } else {
-                                Color(0xFFE65100)
-                            }
+                        text = title,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1A1D20)
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = subtitle,
+                        fontSize = 12.sp,
+                        color = Color(0xFF6C757D)
                     )
                 }
             }
 
-            Spacer(
-                modifier = Modifier.height(16.dp)
-            )
-
-            Row(
-                modifier =
-                    Modifier.fillMaxWidth(),
-                horizontalArrangement =
-                    Arrangement.SpaceBetween,
-                verticalAlignment =
-                    Alignment.CenterVertically
+            // Progress status badge
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(if (isDone) Color(0xFFE8F5E9) else Color(0xFFFFF3E0))
+                    .padding(horizontal = 10.dp, vertical = 4.dp)
             ) {
                 Text(
-                    text = footerText,
+                    text = if (isDone) "Done" else "Required",
                     fontSize = 12.sp,
-                    color =
-                        Color(0xFF9AA0A6)
-                )
-
-                Text(
-                    text = "View ›",
-                    fontSize = 13.sp,
-                    fontWeight =
-                        FontWeight.Bold,
-                    color =
-                        Color(0xFFFF6D00)
+                    fontWeight = FontWeight.Bold,
+                    color = if (isDone) Color(0xFF2E7D32) else Color(0xFFE65100)
                 )
             }
         }
     }
 }
+
+@Composable
+private fun navigationColors() = NavigationBarItemDefaults.colors(
+    selectedIconColor = Color(0xFFFF6D00),
+    selectedTextColor = Color(0xFFFF6D00),
+    unselectedIconColor = Color(0xFF9AA0A6),
+    unselectedTextColor = Color(0xFF9AA0A6),
+    indicatorColor = Color.Transparent
+)

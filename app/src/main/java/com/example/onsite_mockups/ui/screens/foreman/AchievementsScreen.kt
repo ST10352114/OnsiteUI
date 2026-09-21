@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,20 +13,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -44,29 +45,35 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.onsite_mockups.ui.viewmodels.AchievementStats
 import com.example.onsite_mockups.ui.viewmodels.AchievementsViewModel
 
+/**
+ * Displays foreman achievements, streaks, and progress toward the next tier.
+ * Motivate foremen through gamification based on report submission consistency.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AchievementsScreen(
     achievementsViewModel: AchievementsViewModel,
     onNavigateHome: () -> Unit,
-    onNavigateAlerts: () -> Unit = {},
-    onNavigateProfile: () -> Unit = {}
+    onNavigateProfile: () -> Unit
 ) {
-    var selectedTab by remember {
+    // Current tab selection for the bottom navigation
+    var navTab by remember {
         mutableIntStateOf(1)
     }
 
-    val stats by
-    achievementsViewModel.stats.collectAsState()
+    // Observe stats from ViewModel
+    val stats by achievementsViewModel.stats.collectAsState()
 
+    // Recalculate stats on screen entry
     LaunchedEffect(Unit) {
         achievementsViewModel.loadAchievements()
     }
@@ -78,15 +85,16 @@ fun AchievementsScreen(
                 containerColor = Color.White,
                 tonalElevation = 8.dp
             ) {
+                // Navigation items
                 NavigationBarItem(
-                    selected = selectedTab == 0,
+                    selected = navTab == 0,
                     onClick = {
-                        selectedTab = 0
+                        navTab = 0
                         onNavigateHome()
                     },
                     icon = {
                         Icon(
-                            Icons.Default.Home,
+                            Icons.Default.GridView,
                             contentDescription = "Home"
                         )
                     },
@@ -96,91 +104,33 @@ fun AchievementsScreen(
                             fontSize = 11.sp
                         )
                     },
-                    colors =
-                        NavigationBarItemDefaults.colors(
-                            selectedIconColor =
-                                Color(0xFFFF6D00),
-                            selectedTextColor =
-                                Color(0xFFFF6D00),
-                            unselectedIconColor =
-                                Color(0xFF9AA0A6),
-                            unselectedTextColor =
-                                Color(0xFF9AA0A6),
-                            indicatorColor =
-                                Color.Transparent
-                        )
+                    colors = navigationColors()
                 )
 
                 NavigationBarItem(
-                    selected = selectedTab == 1,
+                    selected = navTab == 1,
                     onClick = {
-                        selectedTab = 1
+                        navTab = 1
                     },
                     icon = {
                         Icon(
                             Icons.Default.EmojiEvents,
-                            contentDescription =
-                                "Achievements"
+                            contentDescription = "Achievements"
                         )
                     },
                     label = {
                         Text(
-                            "Achievements",
+                            "Awards",
                             fontSize = 11.sp
                         )
                     },
-                    colors =
-                        NavigationBarItemDefaults.colors(
-                            selectedIconColor =
-                                Color(0xFFFF6D00),
-                            selectedTextColor =
-                                Color(0xFFFF6D00),
-                            unselectedIconColor =
-                                Color(0xFF9AA0A6),
-                            unselectedTextColor =
-                                Color(0xFF9AA0A6),
-                            indicatorColor =
-                                Color.Transparent
-                        )
+                    colors = navigationColors()
                 )
 
                 NavigationBarItem(
-                    selected = selectedTab == 2,
+                    selected = navTab == 2,
                     onClick = {
-                        selectedTab = 2
-                        onNavigateAlerts()
-                    },
-                    icon = {
-                        Icon(
-                            Icons.Default.Notifications,
-                            contentDescription = "Alerts"
-                        )
-                    },
-                    label = {
-                        Text(
-                            "Alerts",
-                            fontSize = 11.sp
-                        )
-                    },
-                    colors =
-                        NavigationBarItemDefaults.colors(
-                            selectedIconColor =
-                                Color(0xFFFF6D00),
-                            selectedTextColor =
-                                Color(0xFFFF6D00),
-                            unselectedIconColor =
-                                Color(0xFF9AA0A6),
-                            unselectedTextColor =
-                                Color(0xFF9AA0A6),
-                            indicatorColor =
-                                Color.Transparent
-                        )
-                )
-
-                NavigationBarItem(
-                    selected = selectedTab == 3,
-                    onClick = {
-                        selectedTab = 3
+                        navTab = 2
                         onNavigateProfile()
                     },
                     icon = {
@@ -195,122 +145,56 @@ fun AchievementsScreen(
                             fontSize = 11.sp
                         )
                     },
-                    colors =
-                        NavigationBarItemDefaults.colors(
-                            selectedIconColor =
-                                Color(0xFFFF6D00),
-                            selectedTextColor =
-                                Color(0xFFFF6D00),
-                            unselectedIconColor =
-                                Color(0xFF9AA0A6),
-                            unselectedTextColor =
-                                Color(0xFF9AA0A6),
-                            indicatorColor =
-                                Color.Transparent
-                        )
+                    colors = navigationColors()
                 )
             }
         }
     ) { innerPadding ->
 
-        LazyColumn(
-            modifier =
-                Modifier
+        if (stats.isLoading) {
+            Box(
+                modifier =
+                    Modifier.fillMaxSize(),
+                contentAlignment =
+                    Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    color = Color(0xFFFF6D00)
+                )
+            }
+        } else {
+
+            LazyColumn(
+                modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
                     .padding(horizontal = 20.dp),
-            verticalArrangement =
-                Arrangement.spacedBy(20.dp)
-        ) {
+                verticalArrangement =
+                    Arrangement.spacedBy(16.dp)
+            ) {
 
-            item {
-
-                Spacer(
-                    modifier =
-                        Modifier.height(16.dp)
-                )
-
-                Text(
-                    text = "Achievements",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1A1D20)
-                )
-
-                Spacer(
-                    modifier =
-                        Modifier.height(2.dp)
-                )
-
-                Text(
-                    text =
-                        "Keep logging updates to level up",
-                    fontSize = 14.sp,
-                    color = Color(0xFF6C757D)
-                )
-            }
-
-            item {
-
-                if (stats.isLoading) {
-
-                    Card(
+                item {
+                    Spacer(
                         modifier =
-                            Modifier.fillMaxWidth(),
-                        shape =
-                            RoundedCornerShape(20.dp),
-                        colors =
-                            CardDefaults.cardColors(
-                                containerColor =
-                                    Color(0xFF1A1D20)
-                            )
-                    ) {
+                            Modifier.height(16.dp)
+                    )
 
-                        Box(
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .height(180.dp),
-                            contentAlignment =
-                                Alignment.Center
-                        ) {
+                    Text(
+                        text = "Achievements",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1A1D20)
+                    )
 
-                            CircularProgressIndicator(
-                                color =
-                                    Color(0xFFFFC107)
-                            )
-                        }
-                    }
-
-                } else {
-
-                    TierCard(
-                        stats = stats
+                    Text(
+                        text = "You're a ${stats.tier}",
+                        fontSize = 14.sp,
+                        color = Color(0xFF6C757D)
                     )
                 }
-            }
 
-            item {
-
-                TierLegendItemRow()
-            }
-
-            item {
-
-                Text(
-                    text =
-                        "BADGES EARNED — ${stats.earnedBadgeCount} OF 6",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF9AA0A6),
-                    letterSpacing = 1.sp
-                )
-            }
-
-            item {
-
-                if (stats.errorMessage != null) {
-
+                // Tier Progress Card
+                item {
                     Card(
                         modifier =
                             Modifier.fillMaxWidth(),
@@ -319,542 +203,270 @@ fun AchievementsScreen(
                         colors =
                             CardDefaults.cardColors(
                                 containerColor =
-                                    Color(0xFFFFEBEE)
+                                    Color.White
+                            ),
+                        elevation =
+                            CardDefaults.cardElevation(
+                                defaultElevation = 1.dp
                             )
                     ) {
-
                         Column(
                             modifier =
                                 Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp)
+                                    .padding(20.dp)
                         ) {
+                            Row(
+                                modifier =
+                                    Modifier.fillMaxWidth(),
+                                horizontalArrangement =
+                                    Arrangement.SpaceBetween,
+                                verticalAlignment =
+                                    Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = stats.tier,
+                                    fontSize = 16.sp,
+                                    fontWeight =
+                                        FontWeight.Bold,
+                                    color =
+                                        Color(0xFF1A1D20)
+                                )
 
-                            Text(
-                                text =
-                                    stats.errorMessage
-                                        ?: "Failed to load achievements.",
+                                Text(
+                                    text =
+                                        "${stats.totalUpdates} reports",
+                                    fontSize = 13.sp,
+                                    color =
+                                        Color(0xFF6C757D)
+                                )
+                            }
+
+                            Spacer(
+                                modifier =
+                                    Modifier.height(12.dp)
+                            )
+
+                            // Linear progress indicator for tier growth
+                            LinearProgressIndicator(
+                                progress = {
+                                    stats.progressToNextTier
+                                },
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .height(8.dp)
+                                        .clip(
+                                            CircleShape
+                                        ),
                                 color =
-                                    Color(0xFFD32F2F),
-                                fontSize = 13.sp
+                                    Color(0xFFFFC107),
+                                trackColor =
+                                    Color(0xFFF1F3F5)
                             )
 
                             Spacer(
                                 modifier =
-                                    Modifier.height(10.dp)
+                                    Modifier.height(12.dp)
                             )
 
-                            Button(
-                                onClick = {
-                                    achievementsViewModel
-                                        .loadAchievements()
-                                },
-                                colors =
-                                    ButtonDefaults.buttonColors(
-                                        containerColor =
-                                            Color(0xFFFF6D00)
-                                    )
-                            ) {
-                                Text("Retry")
+                            if (stats.nextTierTarget != null) {
+                                Text(
+                                    text =
+                                        "${stats.updatesUntilNextTier} more reports until next tier",
+                                    fontSize = 12.sp,
+                                    color =
+                                        Color(0xFF6C757D)
+                                )
+                            } else {
+                                Text(
+                                    text = "Maximum tier reached!",
+                                    fontSize = 12.sp,
+                                    color =
+                                        Color(0xFF2E7D32),
+                                    fontWeight =
+                                        FontWeight.Bold
+                                )
                             }
                         }
                     }
-
-                } else {
-
-                    BadgesGrid(
-                        stats = stats
-                    )
                 }
-            }
 
-            item {
+                // Main Statistics Row
+                item {
+                    Row(
+                        modifier =
+                            Modifier.fillMaxWidth(),
+                        horizontalArrangement =
+                            Arrangement.spacedBy(12.dp)
+                    ) {
+                        StatCard(
+                            value = stats.totalUpdates.toString(),
+                            label = "Reports",
+                            modifier =
+                                Modifier.weight(1f)
+                        )
 
-                Spacer(
-                    modifier =
-                        Modifier.height(24.dp)
-                )
-            }
-        }
-    }
-}
+                        StatCard(
+                            value = stats.longestStreak.toString(),
+                            label = "Best Streak",
+                            modifier =
+                                Modifier.weight(1f)
+                        )
 
-@Composable
-private fun TierCard(
-    stats: AchievementStats
-) {
-    Card(
-        modifier =
-            Modifier.fillMaxWidth(),
-        shape =
-            RoundedCornerShape(20.dp),
-        colors =
-            CardDefaults.cardColors(
-                containerColor =
-                    Color(0xFF1A1D20)
-            ),
-        elevation =
-            CardDefaults.cardElevation(
-                defaultElevation = 0.dp
-            )
-    ) {
+                        StatCard(
+                            value = stats.totalPhotos.toString(),
+                            label = "Photos",
+                            modifier =
+                                Modifier.weight(1f)
+                        )
+                    }
+                }
 
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp)
-        ) {
-
-            Row(
-                modifier =
-                    Modifier.fillMaxWidth(),
-                horizontalArrangement =
-                    Arrangement.SpaceBetween,
-                verticalAlignment =
-                    Alignment.CenterVertically
-            ) {
-
-                Column {
-
+                item {
                     Text(
-                        text = "CURRENT TIER",
-                        fontSize = 11.sp,
+                        text = "YOUR BADGES",
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFFFFC107),
+                        color = Color(0xFF9AA0A6),
                         letterSpacing = 1.sp
                     )
+                }
 
+                // Badge collection grid
+                item {
+                    FlowRow(
+                        modifier =
+                            Modifier.fillMaxWidth(),
+                        horizontalArrangement =
+                            Arrangement.spacedBy(12.dp),
+                        verticalArrangement =
+                            Arrangement.spacedBy(12.dp),
+                        maxItemsInEachRow = 3
+                    ) {
+                        BadgeItem(
+                            title = "First Report",
+                            icon = Icons.Default.EmojiEvents,
+                            isEarned = stats.firstUpdateEarned
+                        )
+                        BadgeItem(
+                            title = "3-Day Streak",
+                            icon = Icons.Default.Whatshot,
+                            isEarned = stats.threeDayStreakEarned
+                        )
+                        BadgeItem(
+                            title = "Photo Pro",
+                            icon = Icons.Default.CameraAlt,
+                            isEarned = stats.photoProEarned
+                        )
+                        BadgeItem(
+                            title = "10 Reports",
+                            icon = Icons.Default.Star,
+                            isEarned = stats.tenUpdatesEarned
+                        )
+                        BadgeItem(
+                            title = "Perfect Week",
+                            icon = Icons.Default.DateRange,
+                            isEarned = stats.perfectWeekEarned
+                        )
+                        BadgeItem(
+                            title = "Master",
+                            icon = Icons.Default.AutoAwesome,
+                            isEarned = stats.twentyFiveUpdatesEarned
+                        )
+                    }
+                }
+
+                item {
                     Spacer(
-                        modifier =
-                            Modifier.height(4.dp)
-                    )
-
-                    Text(
-                        text = stats.tier,
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
-
-                Box(
-                    modifier =
-                        Modifier
-                            .size(48.dp)
-                            .clip(CircleShape)
-                            .background(
-                                Color(0xFF343A40)
-                            ),
-                    contentAlignment =
-                        Alignment.Center
-                ) {
-
-                    Icon(
-                        imageVector =
-                            Icons.Default.EmojiEvents,
-                        contentDescription =
-                            "Trophy",
-                        tint =
-                            Color(0xFFE9ECEF),
-                        modifier =
-                            Modifier.size(24.dp)
+                        modifier = Modifier.height(24.dp)
                     )
                 }
             }
-
-            Spacer(
-                modifier =
-                    Modifier.height(20.dp)
-            )
-
-            Row(
-                modifier =
-                    Modifier.fillMaxWidth(),
-                horizontalArrangement =
-                    Arrangement.SpaceBetween
-            ) {
-
-                Text(
-                    text =
-                        "${stats.totalUpdates} updates logged",
-                    fontSize = 12.sp,
-                    color = Color(0xFF9AA0A6)
-                )
-
-                Text(
-                    text =
-                        if (
-                            stats.nextTierTarget != null
-                        ) {
-                            "${stats.nextTierTarget} for next tier"
-                        } else {
-                            "Highest tier reached"
-                        },
-                    fontSize = 12.sp,
-                    color = Color(0xFF9AA0A6)
-                )
-            }
-
-            Spacer(
-                modifier =
-                    Modifier.height(8.dp)
-            )
-
-            LinearProgressIndicator(
-                progress = {
-                    stats.progressToNextTier
-                },
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(8.dp)
-                        .clip(
-                            RoundedCornerShape(4.dp)
-                        ),
-                color =
-                    Color(0xFFFF6D00),
-                trackColor =
-                    Color(0xFF343A40)
-            )
-
-            Spacer(
-                modifier =
-                    Modifier.height(8.dp)
-            )
-
-            Text(
-                text =
-                    when {
-                        stats.updatesUntilNextTier > 0 ->
-                            "${stats.updatesUntilNextTier} more updates to reach the next tier"
-
-                        else ->
-                            "You've reached the highest tier"
-                    },
-                fontSize = 11.sp,
-                color = Color(0xFF9AA0A6)
-            )
         }
     }
 }
 
+/**
+ * Reusable card for displaying a single numerical statistic.
+ */
 @Composable
-private fun TierLegendItemRow() {
-    Row(
-        modifier =
-            Modifier.fillMaxWidth(),
-        horizontalArrangement =
-            Arrangement.SpaceBetween
-    ) {
-
-        TierLegendItem(
-            dotColor = Color(0xFFCD7F32),
-            title = "BRONZE",
-            subtitle = "0-9 updates"
-        )
-
-        TierLegendItem(
-            dotColor = Color(0xFFC0C0C0),
-            title = "SILVER",
-            subtitle = "10-24 updates"
-        )
-
-        TierLegendItem(
-            dotColor = Color(0xFFFFD700),
-            title = "GOLD",
-            subtitle = "25+ updates"
-        )
-    }
-}
-
-@Composable
-private fun BadgesGrid(
-    stats: AchievementStats
+private fun StatCard(
+    value: String,
+    label: String,
+    modifier: Modifier = Modifier
 ) {
-    Column(
-        verticalArrangement =
-            Arrangement.spacedBy(12.dp)
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-
-        Row(
-            modifier =
-                Modifier.fillMaxWidth(),
-            horizontalArrangement =
-                Arrangement.spacedBy(12.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
-            Box(
-                modifier =
-                    Modifier.weight(1f)
-            ) {
-                BadgeItem(
-                    title = "First Update",
-                    subtitle =
-                        if (stats.firstUpdateEarned) {
-                            "Earned"
-                        } else {
-                            "1 update"
-                        },
-                    icon = Icons.Default.Flag,
-                    earned =
-                        stats.firstUpdateEarned
-                )
-            }
-
-            Box(
-                modifier =
-                    Modifier.weight(1f)
-            ) {
-                BadgeItem(
-                    title = "3-Day Streak",
-                    subtitle =
-                        if (stats.threeDayStreakEarned) {
-                            "Earned"
-                        } else {
-                            "${stats.longestStreak}/3 days"
-                        },
-                    icon = Icons.Default.Star,
-                    earned =
-                        stats.threeDayStreakEarned
-                )
-            }
-
-            Box(
-                modifier =
-                    Modifier.weight(1f)
-            ) {
-                BadgeItem(
-                    title = "Photo Pro",
-                    subtitle =
-                        if (stats.photoProEarned) {
-                            "Earned"
-                        } else {
-                            "${stats.totalPhotos}/10 photos"
-                        },
-                    icon = Icons.Default.PhotoCamera,
-                    earned =
-                        stats.photoProEarned
-                )
-            }
-        }
-
-        Row(
-            modifier =
-                Modifier.fillMaxWidth(),
-            horizontalArrangement =
-                Arrangement.spacedBy(12.dp)
-        ) {
-
-            Box(
-                modifier =
-                    Modifier.weight(1f)
-            ) {
-                BadgeItem(
-                    title = "10 Updates",
-                    subtitle =
-                        if (stats.tenUpdatesEarned) {
-                            "Earned"
-                        } else {
-                            "${stats.totalUpdates}/10"
-                        },
-                    icon = Icons.Default.CheckCircle,
-                    earned =
-                        stats.tenUpdatesEarned
-                )
-            }
-
-            Box(
-                modifier =
-                    Modifier.weight(1f)
-            ) {
-                BadgeItem(
-                    title = "Perfect Week",
-                    subtitle =
-                        if (stats.perfectWeekEarned) {
-                            "Earned"
-                        } else {
-                            "${stats.longestStreak}/5 days"
-                        },
-                    icon = Icons.Default.EmojiEvents,
-                    earned =
-                        stats.perfectWeekEarned
-                )
-            }
-
-            Box(
-                modifier =
-                    Modifier.weight(1f)
-            ) {
-                BadgeItem(
-                    title = "25 Updates",
-                    subtitle =
-                        if (stats.twentyFiveUpdatesEarned) {
-                            "Earned"
-                        } else {
-                            "${stats.totalUpdates}/25"
-                        },
-                    icon = Icons.Default.EmojiEvents,
-                    earned =
-                        stats.twentyFiveUpdatesEarned
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun TierLegendItem(
-    dotColor: Color,
-    title: String,
-    subtitle: String
-) {
-    Column(
-        horizontalAlignment =
-            Alignment.CenterHorizontally
-    ) {
-
-        Row(
-            verticalAlignment =
-                Alignment.CenterVertically,
-            horizontalArrangement =
-                Arrangement.spacedBy(4.dp)
-        ) {
-
-            Box(
-                modifier =
-                    Modifier
-                        .size(8.dp)
-                        .clip(CircleShape)
-                        .background(dotColor)
-            )
-
             Text(
-                text = title,
-                fontSize = 11.sp,
+                text = value,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF1A1D20)
             )
+            Text(
+                text = label,
+                fontSize = 11.sp,
+                color = Color(0xFF6C757D)
+            )
         }
+    }
+}
 
-        Spacer(
-            modifier =
-                Modifier.height(2.dp)
-        )
-
+/**
+ * Renders an achievement badge. Displays grayscale if not yet earned.
+ */
+@Composable
+private fun BadgeItem(
+    title: String,
+    icon: ImageVector,
+    isEarned: Boolean
+) {
+    Column(
+        modifier = Modifier
+            .width(90.dp)
+            .alpha(if (isEarned) 1f else 0.4f),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(64.dp)
+                .clip(CircleShape)
+                .background(if (isEarned) Color(0xFFFFF3E0) else Color(0xFFF1F3F5)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = title,
+                tint = if (isEarned) Color(0xFFFFC107) else Color(0xFFADB5BD),
+                modifier = Modifier.size(32.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = subtitle,
+            text = title,
             fontSize = 11.sp,
-            color = Color(0xFF6C757D)
+            fontWeight = FontWeight.Bold,
+            color = if (isEarned) Color(0xFF1A1D20) else Color(0xFF6C757D)
         )
     }
 }
 
 @Composable
-private fun BadgeItem(
-    title: String,
-    subtitle: String,
-    icon: ImageVector,
-    earned: Boolean
-) {
-    Card(
-        modifier =
-            Modifier.fillMaxWidth(),
-        shape =
-            RoundedCornerShape(16.dp),
-        colors =
-            CardDefaults.cardColors(
-                containerColor =
-                    if (earned) {
-                        Color(0xFFFFFCF0)
-                    } else {
-                        Color(0xFFF1F3F5)
-                    }
-            ),
-        elevation =
-            CardDefaults.cardElevation(
-                defaultElevation = 0.dp
-            )
-    ) {
-
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        vertical = 16.dp,
-                        horizontal = 8.dp
-                    ),
-            horizontalAlignment =
-                Alignment.CenterHorizontally
-        ) {
-
-            Box(
-                modifier =
-                    Modifier
-                        .size(48.dp)
-                        .clip(
-                            RoundedCornerShape(12.dp)
-                        )
-                        .background(
-                            if (earned) {
-                                Color(0xFFFFC107)
-                            } else {
-                                Color(0xFFE9ECEF)
-                            }
-                        ),
-                contentAlignment =
-                    Alignment.Center
-            ) {
-
-                Icon(
-                    imageVector = icon,
-                    contentDescription = title,
-                    tint =
-                        if (earned) {
-                            Color(0xFF1A1D20)
-                        } else {
-                            Color(0xFFADB5BD)
-                        },
-                    modifier =
-                        Modifier.size(24.dp)
-                )
-            }
-
-            Spacer(
-                modifier =
-                    Modifier.height(12.dp)
-            )
-
-            Text(
-                text = title,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color =
-                    if (earned) {
-                        Color(0xFF1A1D20)
-                    } else {
-                        Color(0xFF6C757D)
-                    },
-                maxLines = 1
-            )
-
-            Spacer(
-                modifier =
-                    Modifier.height(2.dp)
-            )
-
-            Text(
-                text = subtitle,
-                fontSize = 10.sp,
-                color =
-                    if (earned) {
-                        Color(0xFF8D6E63)
-                    } else {
-                        Color(0xFF9AA0A6)
-                    },
-                maxLines = 1
-            )
-        }
-    }
-}
+private fun navigationColors() = NavigationBarItemDefaults.colors(
+    selectedIconColor = Color(0xFFFF6D00),
+    selectedTextColor = Color(0xFFFF6D00),
+    unselectedIconColor = Color(0xFF9AA0A6),
+    unselectedTextColor = Color(0xFF9AA0A6),
+    indicatorColor = Color.Transparent
+)

@@ -6,12 +6,19 @@ import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 
+/**
+ * Manager class for handling biometric authentication (Fingerprint, Face ID).
+ * Stores user preferences in SharedPreferences and interacts with the Android Biometric API.
+ */
 object OnSiteBiometricManager {
 
     private const val PREFS_NAME = "onsite_security"
     private const val KEY_ENABLED = "biometric_enabled"
     private const val KEY_USER_ID = "biometric_user_id"
 
+    /**
+     * Checks if biometric login is globally enabled on this device for the app.
+     */
     fun isEnabled(context: Context): Boolean {
         return context
             .getSharedPreferences(
@@ -24,6 +31,9 @@ object OnSiteBiometricManager {
             )
     }
 
+    /**
+     * Verifies if biometric login is enabled for a specific user ID.
+     */
     fun enabledForUser(
         context: Context,
         userId: String
@@ -44,6 +54,9 @@ object OnSiteBiometricManager {
                 ) == userId
     }
 
+    /**
+     * Enables biometric login for the specified user ID.
+     */
     fun enable(
         context: Context,
         userId: String
@@ -65,6 +78,9 @@ object OnSiteBiometricManager {
             .apply()
     }
 
+    /**
+     * Disables biometric login and clears stored credentials.
+     */
     fun disable(context: Context) {
         context
             .getSharedPreferences(
@@ -76,6 +92,9 @@ object OnSiteBiometricManager {
             .apply()
     }
 
+    /**
+     * Checks if the device has biometric hardware and if any biometrics are enrolled.
+     */
     fun canAuthenticate(
         context: Context
     ): Boolean {
@@ -88,6 +107,9 @@ object OnSiteBiometricManager {
                 BiometricManager.BIOMETRIC_SUCCESS
     }
 
+    /**
+     * Triggers the system biometric authentication prompt.
+     */
     fun authenticate(
         activity: FragmentActivity,
         title: String,
@@ -103,6 +125,7 @@ object OnSiteBiometricManager {
                 BiometricManager.Authenticators.BIOMETRIC_WEAK
             )
 
+        // Handle various biometric unavailability scenarios
         if (
             result !=
             BiometricManager.BIOMETRIC_SUCCESS
@@ -131,6 +154,7 @@ object OnSiteBiometricManager {
                 activity
             )
 
+        // Initialize the BiometricPrompt with success/failure callbacks
         val prompt =
             BiometricPrompt(
                 activity,
@@ -172,6 +196,7 @@ object OnSiteBiometricManager {
                 }
             )
 
+        // Build the prompt UI configuration
         val promptInfo =
             BiometricPrompt.PromptInfo.Builder()
                 .setTitle(title)
@@ -180,6 +205,7 @@ object OnSiteBiometricManager {
                 .setConfirmationRequired(false)
                 .build()
 
+        // Start authentication
         prompt.authenticate(
             promptInfo
         )

@@ -7,8 +7,14 @@ import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.serializer.KotlinXSerializer
 import kotlinx.serialization.json.Json
 
+/**
+ * Singleton object providing the Supabase client for authentication and direct database access via Postgrest.
+ */
 object SupabaseClient {
 
+    /**
+     * The Supabase client, initialized lazily to avoid issues in unit tests.
+     */
     val client by lazy {
         createSupabaseClient(
             supabaseUrl = BuildConfig.SUPABASE_URL,

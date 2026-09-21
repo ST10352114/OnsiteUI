@@ -12,23 +12,36 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel for Administrator functions.
+ * Manages the global state of sites, foremen, and assignments.
+ */
 class AdminViewModel : ViewModel() {
 
     private val _sites =
         MutableStateFlow<List<Site>>(emptyList())
 
+    /**
+     * List of all construction sites.
+     */
     val sites: StateFlow<List<Site>> =
         _sites.asStateFlow()
 
     private val _updates =
         MutableStateFlow<List<SiteUpdate>>(emptyList())
 
+    /**
+     * List of all submitted site updates.
+     */
     val updates: StateFlow<List<SiteUpdate>> =
         _updates.asStateFlow()
 
     private val _foremen =
         MutableStateFlow<List<Profile>>(emptyList())
 
+    /**
+     * List of all user profiles with the 'foreman' role.
+     */
     val foremen: StateFlow<List<Profile>> =
         _foremen.asStateFlow()
 
@@ -37,6 +50,9 @@ class AdminViewModel : ViewModel() {
             emptyList()
         )
 
+    /**
+     * List of all foreman-to-site assignments.
+     */
     val assignments:
             StateFlow<List<SiteForemanAssignment>> =
         _assignments.asStateFlow()
@@ -44,6 +60,9 @@ class AdminViewModel : ViewModel() {
     private val _selectedUpdate =
         MutableStateFlow<SiteUpdate?>(null)
 
+    /**
+     * Currently selected update for detailed viewing.
+     */
     val selectedUpdate:
             StateFlow<SiteUpdate?> =
         _selectedUpdate.asStateFlow()
@@ -51,18 +70,27 @@ class AdminViewModel : ViewModel() {
     private val _isSaving =
         MutableStateFlow(false)
 
+    /**
+     * True if a write operation (add/update) is in progress.
+     */
     val isSaving: StateFlow<Boolean> =
         _isSaving.asStateFlow()
 
     private val _isLoading =
         MutableStateFlow(false)
 
+    /**
+     * True if data is being fetched from the server.
+     */
     val isLoading: StateFlow<Boolean> =
         _isLoading.asStateFlow()
 
     private val _errorMessage =
         MutableStateFlow<String?>(null)
 
+    /**
+     * Contains the last error message, or null if none.
+     */
     val errorMessage:
             StateFlow<String?> =
         _errorMessage.asStateFlow()
@@ -70,10 +98,16 @@ class AdminViewModel : ViewModel() {
     private val _successMessage =
         MutableStateFlow<String?>(null)
 
+    /**
+     * Contains a success message after an action, or null if none.
+     */
     val successMessage:
             StateFlow<String?> =
         _successMessage.asStateFlow()
 
+    /**
+     * Finds the profile of the foreman who submitted the given update.
+     */
     fun getForemanForUpdate(
         update: SiteUpdate?
     ): Profile? {
@@ -82,6 +116,9 @@ class AdminViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Filters assignments for a specific site.
+     */
     fun getAssignmentsForSite(
         siteId: String?
     ): List<SiteForemanAssignment> {
@@ -95,6 +132,9 @@ class AdminViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Checks if a specific foreman is already assigned to a site.
+     */
     fun isForemanAssignedToSite(
         siteId: String,
         foremanId: String
@@ -105,6 +145,9 @@ class AdminViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Loads all administrator data (sites, foremen, assignments, updates) in parallel.
+     */
     fun loadAdminData() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -162,6 +205,9 @@ class AdminViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Refreshes sites, foremen, and assignments.
+     */
     fun refreshAssignmentData() {
         viewModelScope.launch {
             _errorMessage.value = null
@@ -185,6 +231,9 @@ class AdminViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Sets the currently selected update by ID.
+     */
     fun selectUpdate(
         updateId: String
     ) {
@@ -195,6 +244,9 @@ class AdminViewModel : ViewModel() {
             }
     }
 
+    /**
+     * Creates a new construction site.
+     */
     fun addSite(
         name: String,
         address: String
@@ -234,6 +286,9 @@ class AdminViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Updates an existing site's basic info and status.
+     */
     fun updateSite(
         id: String?,
         name: String,
@@ -283,6 +338,9 @@ class AdminViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Creates a new user profile with the foreman role.
+     */
     fun addForeman(
         fullName: String,
         email: String
@@ -331,6 +389,9 @@ class AdminViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Links a foreman to a site.
+     */
     fun assignForeman(
         siteId: String?,
         foremanId: String?
@@ -397,6 +458,9 @@ class AdminViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Unlinks a foreman from a site.
+     */
     fun removeAssignment(
         siteId: String,
         foremanId: String
@@ -428,6 +492,9 @@ class AdminViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Clears any active error or success notifications.
+     */
     fun clearMessages() {
         _errorMessage.value = null
         _successMessage.value = null

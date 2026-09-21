@@ -20,6 +20,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+/**
+ * Service for handling Firebase Cloud Messaging (FCM) notifications.
+ * Manages token registration and displays local notifications when messages are received.
+ */
 class OnSiteFirebaseMessagingService :
     FirebaseMessagingService() {
 
@@ -42,9 +46,13 @@ class OnSiteFirebaseMessagingService :
 
         super.onCreate()
 
+        // Ensure the notification channel is created for Android O+
         createNotificationChannel()
     }
 
+    /**
+     * Called when a new FCM token is generated for the device.
+     */
     override fun onNewToken(
         token: String
     ) {
@@ -56,6 +64,7 @@ class OnSiteFirebaseMessagingService :
             "FCM token refreshed."
         )
 
+        // Register the new token with our backend
         CoroutineScope(
             Dispatchers.IO
         ).launch {
@@ -83,6 +92,9 @@ class OnSiteFirebaseMessagingService :
         }
     }
 
+    /**
+     * Called when an FCM message is received while the app is in foreground or has data payload.
+     */
     override fun onMessageReceived(
         remoteMessage: RemoteMessage
     ) {
@@ -96,6 +108,7 @@ class OnSiteFirebaseMessagingService :
             "FCM message received."
         )
 
+        // Extract title and message from the notification or data payload
         val title =
             remoteMessage
                 .notification
@@ -110,6 +123,7 @@ class OnSiteFirebaseMessagingService :
                 ?: remoteMessage.data["message"]
                 ?: "You have a new notification."
 
+        // Show a local notification to the user
         showNotification(
             title = title,
             message = message,
@@ -117,12 +131,16 @@ class OnSiteFirebaseMessagingService :
         )
     }
 
+    /**
+     * Builds and displays a local system notification.
+     */
     private fun showNotification(
         title: String,
         message: String,
         data: Map<String, String>
     ) {
 
+        // Check for POST_NOTIFICATIONS permission on Android 13+
         if (
             Build.VERSION.SDK_INT >=
             Build.VERSION_CODES.TIRAMISU
@@ -145,6 +163,7 @@ class OnSiteFirebaseMessagingService :
             }
         }
 
+        // Create an intent to open MainActivity when the notification is clicked
         val intent =
             Intent(
                 this,
@@ -155,6 +174,7 @@ class OnSiteFirebaseMessagingService :
                     Intent.FLAG_ACTIVITY_NEW_TASK or
                             Intent.FLAG_ACTIVITY_CLEAR_TOP
 
+                // Pass FCM data to the activity for deep linking/routing
                 data.forEach {
                         entry ->
 
@@ -177,6 +197,7 @@ class OnSiteFirebaseMessagingService :
                         PendingIntent.FLAG_IMMUTABLE
             )
 
+        // Build the notification with high priority and auto-cancel
         val notification =
             NotificationCompat
                 .Builder(
@@ -215,6 +236,7 @@ class OnSiteFirebaseMessagingService :
             System.currentTimeMillis()
                 .toInt()
 
+        // Show the notification
         NotificationManagerCompat
             .from(this)
             .notify(
@@ -223,6 +245,9 @@ class OnSiteFirebaseMessagingService :
             )
     }
 
+    /**
+     * Creates the notification channel required for Android 8.0+.
+     */
     private fun createNotificationChannel() {
 
         if (

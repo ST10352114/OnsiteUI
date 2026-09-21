@@ -61,6 +61,9 @@ import androidx.fragment.app.FragmentActivity
 import androidx.compose.ui.platform.LocalContext
 import com.example.onsite_mockups.security.OnSiteBiometricManager
 
+/**
+ * Administrator settings screen for managing preferences and session.
+ */
 @Composable
 fun AdminSettingsScreen(
     authViewModel: AuthViewModel,
@@ -69,10 +72,12 @@ fun AdminSettingsScreen(
     onNavigateAlerts: () -> Unit = {},
     onLogout: () -> Unit
 ) {
+    // Current tab selection for the bottom navigation
     var navTab by remember {
         mutableIntStateOf(3)
     }
 
+    // Observe current user profile
     val currentProfile by
     authViewModel.currentProfile.collectAsState()
 
@@ -86,6 +91,7 @@ fun AdminSettingsScreen(
     val activity =
         context as? FragmentActivity
 
+    // Observe biometric enrollment status
     var biometricLoginEnabled by remember {
         mutableStateOf(
             OnSiteBiometricManager.isEnabled(
@@ -96,6 +102,7 @@ fun AdminSettingsScreen(
 
     val scope = rememberCoroutineScope()
 
+    // Fetch user preferences on entry
     LaunchedEffect(Unit) {
         try {
             pushNotificationsEnabled =
@@ -113,6 +120,7 @@ fun AdminSettingsScreen(
                 containerColor = Color.White,
                 tonalElevation = 8.dp
             ) {
+                // Navigation items
                 NavigationBarItem(
                     selected = navTab == 0,
                     onClick = {
@@ -222,6 +230,7 @@ fun AdminSettingsScreen(
                 )
             }
 
+            // User Info Card
             item {
                 Card(
                     modifier =
@@ -246,6 +255,7 @@ fun AdminSettingsScreen(
                         verticalAlignment =
                             Alignment.CenterVertically
                     ) {
+                        // User initials avatar
                         Box(
                             modifier =
                                 Modifier
@@ -279,6 +289,7 @@ fun AdminSettingsScreen(
                                 Modifier.width(16.dp)
                         )
 
+                        // Full name and role display
                         Column {
                             Text(
                                 text =
@@ -317,6 +328,7 @@ fun AdminSettingsScreen(
                 }
             }
 
+            // Preference items section
             item {
                 Spacer(
                     modifier =
@@ -371,6 +383,7 @@ fun AdminSettingsScreen(
                             onClick = {}
                         )
 
+                        // Toggle for biometric enrollment
                         SettingsSwitchItem(
                             icon =
                                 Icons.Default.Fingerprint,
@@ -383,46 +396,29 @@ fun AdminSettingsScreen(
                             onCheckedChange = biometric@{ enabled ->
 
                                 if (!enabled) {
-
-                                    OnSiteBiometricManager.disable(
-                                        context
-                                    )
-
-                                    biometricLoginEnabled =
-                                        false
-
+                                    OnSiteBiometricManager.disable(context)
+                                    biometricLoginEnabled = false
                                     return@biometric
                                 }
 
-                                val profile =
-                                    currentProfile
+                                val profile = currentProfile
+                                val biometricActivity = activity
 
-                                val biometricActivity =
-                                    activity
-
-                                if (
-                                    profile == null ||
-                                    biometricActivity == null
-                                ) {
+                                if (profile == null || biometricActivity == null) {
                                     return@biometric
                                 }
 
+                                // Request authentication to enable feature
                                 OnSiteBiometricManager.authenticate(
-                                    activity =
-                                        biometricActivity,
-                                    title =
-                                        "Enable biometric login",
-                                    subtitle =
-                                        "Verify your identity to enable biometric login",
+                                    activity = biometricActivity,
+                                    title = "Enable biometric login",
+                                    subtitle = "Verify your identity to enable biometric login",
                                     onSuccess = {
-
                                         OnSiteBiometricManager.enable(
                                             context,
                                             profile.id.toString()
                                         )
-
-                                        biometricLoginEnabled =
-                                            true
+                                        biometricLoginEnabled = true
                                     }
                                 )
                             }
@@ -431,6 +427,7 @@ fun AdminSettingsScreen(
                 }
             }
 
+            // Security related settings
             item {
                 Spacer(
                     modifier =
@@ -478,6 +475,7 @@ fun AdminSettingsScreen(
                 }
             }
 
+            // Reports data settings
             item {
                 Spacer(
                     modifier =
@@ -525,6 +523,7 @@ fun AdminSettingsScreen(
                 }
             }
 
+            // Logout action button
             item {
                 Spacer(
                     modifier =

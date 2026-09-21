@@ -1,5 +1,6 @@
 package com.example.onsite_mockups.ui.screens.foreman
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,15 +20,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Fingerprint
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -40,7 +41,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -52,17 +52,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.onsite_mockups.data.repository.OnSiteRepository
-import com.example.onsite_mockups.ui.viewmodels.AuthViewModel
-import kotlinx.coroutines.launch
-import androidx.compose.runtime.rememberCoroutineScope
-import android.content.Context
 import androidx.fragment.app.FragmentActivity
-import androidx.compose.ui.platform.LocalContext
 import com.example.onsite_mockups.security.OnSiteBiometricManager
+import com.example.onsite_mockups.ui.viewmodels.AuthViewModel
+
+/**
+ * Screen for managing foreman settings, preferences, and security options.
+ */
 @Composable
 fun SettingsScreen(
     authViewModel: AuthViewModel,
@@ -71,69 +71,40 @@ fun SettingsScreen(
     onNavigateAlerts: () -> Unit = {},
     onLogout: () -> Unit
 ) {
-    var selectedTab by remember {
-        mutableIntStateOf(3)
+    // Current tab selection for the bottom navigation
+    var navTab by remember {
+        mutableIntStateOf(2)
     }
 
-    val context =
-        LocalContext.current
+    // Observe user profile
+    val currentProfile by authViewModel.currentProfile.collectAsState()
 
-    val activity =
-        context as? FragmentActivity
+    val context = LocalContext.current
+    val activity = context as? FragmentActivity
 
-    var biometricLoginEnabled by remember {
-        mutableStateOf(
-            OnSiteBiometricManager.isEnabled(
-                context
-            )
-        )
-    }
-
-    val currentProfile by
-    authViewModel.currentProfile.collectAsState()
-
-    var pushNotificationsEnabled by
-    remember {
-        mutableStateOf(true)
-    }
-
-
-
-    val scope =
-        rememberCoroutineScope()
-
-    LaunchedEffect(Unit) {
-        try {
-            pushNotificationsEnabled =
-                OnSiteRepository
-                    .getNotificationPreferences()
-                    .pushEnabled
-        } catch (_: Exception) {
-        }
+    // Manage biometric enrollment state
+    var biometricEnabled by remember {
+        mutableStateOf(OnSiteBiometricManager.isEnabled(context))
     }
 
     Scaffold(
-        containerColor =
-            Color(0xFFF9F9FB),
+        containerColor = Color(0xFFF9F9FB),
         bottomBar = {
             NavigationBar(
-                containerColor =
-                    Color.White,
-                tonalElevation =
-                    8.dp
+                containerColor = Color.White,
+                tonalElevation = 8.dp
             ) {
+                // Navigation items
                 NavigationBarItem(
-                    selected =
-                        selectedTab == 0,
+                    selected = navTab == 0,
                     onClick = {
-                        selectedTab = 0
+                        navTab = 0
                         onNavigateHome()
                     },
                     icon = {
                         Icon(
-                            Icons.Default.Home,
-                            contentDescription =
-                                "Home"
+                            Icons.Default.GridView,
+                            contentDescription = "Home"
                         )
                     },
                     label = {
@@ -142,69 +113,39 @@ fun SettingsScreen(
                             fontSize = 11.sp
                         )
                     },
-                    colors =
-                        navigationColors()
+                    colors = navigationColors()
                 )
 
                 NavigationBarItem(
-                    selected =
-                        selectedTab == 1,
+                    selected = navTab == 1,
                     onClick = {
-                        selectedTab = 1
+                        navTab = 1
                         onNavigateAchievements()
                     },
                     icon = {
                         Icon(
                             Icons.Default.EmojiEvents,
-                            contentDescription =
-                                "Achievements"
+                            contentDescription = "Achievements"
                         )
                     },
                     label = {
                         Text(
-                            "Achievements",
+                            "Awards",
                             fontSize = 11.sp
                         )
                     },
-                    colors =
-                        navigationColors()
+                    colors = navigationColors()
                 )
 
                 NavigationBarItem(
-                    selected =
-                        selectedTab == 2,
+                    selected = navTab == 2,
                     onClick = {
-                        selectedTab = 2
-                        onNavigateAlerts()
-                    },
-                    icon = {
-                        Icon(
-                            Icons.Default.Notifications,
-                            contentDescription =
-                                "Alerts"
-                        )
-                    },
-                    label = {
-                        Text(
-                            "Alerts",
-                            fontSize = 11.sp
-                        )
-                    },
-                    colors =
-                        navigationColors()
-                )
-
-                NavigationBarItem(
-                    selected =
-                        selectedTab == 3,
-                    onClick = {
-                        selectedTab = 3
+                        navTab = 2
                     },
                     icon = {
                         Icon(
                             Icons.Default.Person,
-                            contentDescription =
-                                "Profile"
+                            contentDescription = "Profile"
                         )
                     },
                     label = {
@@ -213,8 +154,7 @@ fun SettingsScreen(
                             fontSize = 11.sp
                         )
                     },
-                    colors =
-                        navigationColors()
+                    colors = navigationColors()
                 )
             }
         }
@@ -236,423 +176,184 @@ fun SettingsScreen(
                 )
 
                 Text(
-                    text = "Settings",
+                    text = "Profile Settings",
                     fontSize = 24.sp,
-                    fontWeight =
-                        FontWeight.Bold,
-                    color =
-                        Color(0xFF1A1D20)
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1A1D20)
                 )
             }
 
+            // User Identity Card
             item {
                 Card(
-                    modifier =
-                        Modifier.fillMaxWidth(),
-                    shape =
-                        RoundedCornerShape(16.dp),
-                    colors =
-                        CardDefaults.cardColors(
-                            containerColor =
-                                Color.White
-                        ),
-                    elevation =
-                        CardDefaults.cardElevation(
-                            defaultElevation =
-                                1.dp
-                        )
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                 ) {
                     Row(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                        verticalAlignment =
-                            Alignment.CenterVertically
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
+                        // User avatar box
                         Box(
-                            modifier =
-                                Modifier
-                                    .size(52.dp)
-                                    .clip(
-                                        CircleShape
-                                    )
-                                    .background(
-                                        Color(0xFF1A1D20)
-                                    ),
-                            contentAlignment =
-                                Alignment.Center
+                            modifier = Modifier
+                                .size(52.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFF1A1D20)),
+                            contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text =
-                                    currentProfile
-                                        ?.fullName
-                                        ?.takeIf { it.isNotBlank() }
-                                        ?.take(2)
-                                        ?.uppercase()
-                                        ?: currentProfile?.email?.take(2)?.uppercase()
-                                        ?: "TM",
-                                color =
-                                    Color(0xFFFFC107),
+                                text = currentProfile?.fullName?.take(2)?.uppercase() ?: "FM",
+                                color = Color(0xFFFFC107),
                                 fontSize = 18.sp,
-                                fontWeight =
-                                    FontWeight.Bold
+                                fontWeight = FontWeight.Bold
                             )
                         }
 
-                        Spacer(
-                            modifier =
-                                Modifier.width(16.dp)
-                        )
+                        Spacer(modifier = Modifier.width(16.dp))
 
                         Column {
                             Text(
-                                text =
-                                    currentProfile
-                                        ?.fullName
-                                        ?.takeIf { it.isNotBlank() }
-                                        ?: (currentProfile?.email?.substringBefore("@")?.replaceFirstChar { it.uppercase() } ?: "Foreman"),
+                                text = currentProfile?.fullName ?: "Foreman User",
                                 fontSize = 16.sp,
-                                fontWeight =
-                                    FontWeight.Bold,
-                                color =
-                                    Color(0xFF1A1D20)
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF1A1D20)
                             )
-
-                            Spacer(
-                                modifier =
-                                    Modifier.height(2.dp)
-                            )
-
+                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text =
-                                    if (
-                                        currentProfile
-                                            ?.role ==
-                                        "foreman"
-                                    ) {
-                                        "Foreman · Assigned sites"
-                                    } else {
-                                        "Employee"
-                                    },
+                                text = currentProfile?.email ?: "foreman@onsite.com",
                                 fontSize = 13.sp,
-                                color =
-                                    Color(0xFF6C757D)
+                                color = Color(0xFF6C757D)
                             )
                         }
                     }
                 }
             }
 
+            // Preferences Section
             item {
-                Spacer(
-                    modifier =
-                        Modifier.height(4.dp)
-                )
-
-                SettingsSectionTitle(
-                    title = "PREFERENCES"
-                )
-
-                Spacer(
-                    modifier =
-                        Modifier.height(8.dp)
-                )
-
+                Spacer(modifier = Modifier.height(4.dp))
+                SettingsSectionTitle(title = "PREFERENCES")
+                Spacer(modifier = Modifier.height(8.dp))
+                
                 Card(
-                    modifier =
-                        Modifier.fillMaxWidth(),
-                    shape =
-                        RoundedCornerShape(16.dp),
-                    colors =
-                        CardDefaults.cardColors(
-                            containerColor =
-                                Color.White
-                        ),
-                    elevation =
-                        CardDefaults.cardElevation(
-                            defaultElevation =
-                                1.dp
-                        )
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                 ) {
-                    Column(
-                        modifier =
-                            Modifier.fillMaxWidth()
-                    ) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
                         SettingsNavigationItem(
-                            icon =
-                                Icons.Default.Language,
-                            title =
-                                "Language",
-                            subtitle =
-                                "English",
+                            icon = Icons.Default.Language,
+                            title = "Language",
+                            subtitle = "English (UK)",
                             onClick = {}
                         )
 
-                        SettingsNavigationItem(
-                            icon =
-                                Icons.Default.DarkMode,
-                            title =
-                                "Theme",
-                            subtitle =
-                                "Light mode",
-                            onClick = {}
-                        )
-
+                        // Toggle for Biometric Authentication
                         SettingsSwitchItem(
-                            icon =
-                                Icons.Default.Fingerprint,
-                            title =
-                                "Biometric login",
-                            subtitle =
-                                "Use fingerprint or Face ID",
-                            checked =
-                                biometricLoginEnabled,
-                            onCheckedChange = biometric@{ enabled ->
-
+                            icon = Icons.Default.Fingerprint,
+                            title = "Biometric Login",
+                            subtitle = "Enable Fingerprint or Face ID",
+                            checked = biometricEnabled,
+                            onCheckedChange = { enabled ->
                                 if (!enabled) {
-
-                                    OnSiteBiometricManager.disable(
-                                        context
-                                    )
-
-                                    biometricLoginEnabled =
-                                        false
-
-                                    return@biometric
-                                }
-
-                                val profile =
-                                    currentProfile
-
-                                val biometricActivity =
-                                    activity
-
-                                if (
-                                    profile == null ||
-                                    biometricActivity == null
-                                ) {
-                                    return@biometric
-                                }
-
-                                OnSiteBiometricManager.authenticate(
-                                    activity =
-                                        biometricActivity,
-                                    title =
-                                        "Enable biometric login",
-                                    subtitle =
-                                        "Verify your identity to enable biometric login",
-                                    onSuccess = {
-
-                                        OnSiteBiometricManager.enable(
-                                            context,
-                                            profile.id.toString()
+                                    OnSiteBiometricManager.disable(context)
+                                    biometricEnabled = false
+                                } else {
+                                    val profile = currentProfile
+                                    val bioActivity = activity
+                                    if (profile != null && bioActivity != null) {
+                                        OnSiteBiometricManager.authenticate(
+                                            activity = bioActivity,
+                                            title = "Enable biometrics",
+                                            subtitle = "Verify to enable secure login",
+                                            onSuccess = {
+                                                OnSiteBiometricManager.enable(context, profile.id.toString())
+                                                biometricEnabled = true
+                                            }
                                         )
-
-                                        biometricLoginEnabled =
-                                            true
                                     }
-                                )
+                                }
                             }
                         )
-                    }
-                }
-            }
 
-            item {
-                Spacer(
-                    modifier =
-                        Modifier.height(4.dp)
-                )
-
-                SettingsSectionTitle(
-                    title = "SECURITY"
-                )
-
-                Spacer(
-                    modifier =
-                        Modifier.height(8.dp)
-                )
-
-                Card(
-                    modifier =
-                        Modifier.fillMaxWidth(),
-                    shape =
-                        RoundedCornerShape(16.dp),
-                    colors =
-                        CardDefaults.cardColors(
-                            containerColor =
-                                Color.White
-                        ),
-                    elevation =
-                        CardDefaults.cardElevation(
-                            defaultElevation =
-                                1.dp
-                        )
-                ) {
-                    Column(
-                        modifier =
-                            Modifier.fillMaxWidth()
-                    ) {
                         SettingsNavigationItem(
-                            icon =
-                                Icons.Default.Lock,
-                            title =
-                                "Change password",
-                            subtitle =
-                                "Last changed 3 months ago",
+                            icon = Icons.Default.Notifications,
+                            title = "Notifications",
+                            subtitle = "Alerts on for site updates",
                             onClick = {}
                         )
                     }
                 }
             }
 
+            // Security Section
             item {
-                Spacer(
-                    modifier =
-                        Modifier.height(4.dp)
-                )
-
-                SettingsSectionTitle(
-                    title = "DATA"
-                )
-
-                Spacer(
-                    modifier =
-                        Modifier.height(8.dp)
-                )
-
+                Spacer(modifier = Modifier.height(4.dp))
+                SettingsSectionTitle(title = "SECURITY")
+                Spacer(modifier = Modifier.height(8.dp))
+                
                 Card(
-                    modifier =
-                        Modifier.fillMaxWidth(),
-                    shape =
-                        RoundedCornerShape(16.dp),
-                    colors =
-                        CardDefaults.cardColors(
-                            containerColor =
-                                Color.White
-                        ),
-                    elevation =
-                        CardDefaults.cardElevation(
-                            defaultElevation =
-                                1.dp
-                        )
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                 ) {
-                    SettingsNavigationItem(
-                        icon =
-                            Icons.Default.Cloud,
-                        title =
-                            "Offline cache",
-                        subtitle =
-                            "2 updates stored on this device",
-                        onClick = {}
-                    )
-                }
-            }
-
-            item {
-                Spacer(
-                    modifier =
-                        Modifier.height(8.dp)
-                )
-
-                OutlinedButton(
-                    onClick =
-                        onLogout,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .height(52.dp),
-                    shape =
-                        RoundedCornerShape(12.dp),
-                    border =
-                        androidx.compose
-                            .foundation
-                            .BorderStroke(
-                                1.dp,
-                                Color(0xFFFFCDD2)
-                            ),
-                    colors =
-                        androidx.compose
-                            .material3
-                            .ButtonDefaults
-                            .outlinedButtonColors(
-                                containerColor =
-                                    Color.White
-                            )
-                ) {
-                    Row(
-                        verticalAlignment =
-                            Alignment.CenterVertically,
-                        horizontalArrangement =
-                            Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector =
-                                Icons.AutoMirrored.Filled.Logout,
-                            contentDescription =
-                                "Log Out",
-                            tint =
-                                Color(0xFFD32F2F),
-                            modifier =
-                                Modifier.size(20.dp)
-                        )
-
-                        Spacer(
-                            modifier =
-                                Modifier.width(8.dp)
-                        )
-
-                        Text(
-                            text = "Log Out",
-                            fontSize = 15.sp,
-                            fontWeight =
-                                FontWeight.Bold,
-                            color =
-                                Color(0xFFD32F2F)
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        SettingsNavigationItem(
+                            icon = Icons.Default.Lock,
+                            title = "Change Password",
+                            subtitle = "Last changed 2 months ago",
+                            onClick = {}
                         )
                     }
                 }
+            }
 
-                Spacer(
-                    modifier =
-                        Modifier.height(24.dp)
-                )
+            // Logout Button
+            item {
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedButton(
+                    onClick = onLogout,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, Color(0xFFFFCDD2)),
+                    colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null, tint = Color(0xFFD32F2F), modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = "Log Out", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
 }
 
+/**
+ * Renders a header for a settings group.
+ */
 @Composable
-private fun navigationColors() =
-    NavigationBarItemDefaults.colors(
-        selectedIconColor =
-            Color(0xFFFF6D00),
-        selectedTextColor =
-            Color(0xFFFF6D00),
-        unselectedIconColor =
-            Color(0xFF9AA0A6),
-        unselectedTextColor =
-            Color(0xFF9AA0A6),
-        indicatorColor =
-            Color.Transparent
-    )
-
-@Composable
-fun SettingsSectionTitle(
-    title: String
-) {
+fun SettingsSectionTitle(title: String) {
     Text(
         text = title,
-        fontSize = 12.sp,
-        fontWeight =
-            FontWeight.Bold,
-        color =
-            Color(0xFF9AA0A6),
-        letterSpacing = 1.sp
+        fontSize = 11.sp,
+        fontWeight = FontWeight.Bold,
+        color = Color(0xFF9AA0A6),
+        letterSpacing = 1.sp,
+        modifier = Modifier.padding(start = 4.dp)
     )
 }
 
+/**
+ * Standard settings row with a chevron for navigation.
+ */
 @Composable
 fun SettingsNavigationItem(
     icon: ImageVector,
@@ -661,93 +362,25 @@ fun SettingsNavigationItem(
     onClick: () -> Unit
 ) {
     Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .clickable(
-                    onClick = onClick
-                )
-                .padding(16.dp),
-        horizontalArrangement =
-            Arrangement.SpaceBetween,
-        verticalAlignment =
-            Alignment.CenterVertically
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            verticalAlignment =
-                Alignment.CenterVertically,
-            modifier =
-                Modifier.weight(1f)
-        ) {
-            Box(
-                modifier =
-                    Modifier
-                        .size(38.dp)
-                        .clip(
-                            RoundedCornerShape(
-                                10.dp
-                            )
-                        )
-                        .background(
-                            Color(0xFFF1F3F5)
-                        ),
-                contentAlignment =
-                    Alignment.Center
-            ) {
-                Icon(
-                    imageVector =
-                        icon,
-                    contentDescription =
-                        title,
-                    tint =
-                        Color(0xFF495057),
-                    modifier =
-                        Modifier.size(20.dp)
-                )
-            }
-
-            Spacer(
-                modifier =
-                    Modifier.width(16.dp)
-            )
-
-            Column {
-                Text(
-                    text = title,
-                    fontSize = 15.sp,
-                    fontWeight =
-                        FontWeight.Bold,
-                    color =
-                        Color(0xFF1A1D20)
-                )
-
-                Spacer(
-                    modifier =
-                        Modifier.height(2.dp)
-                )
-
-                Text(
-                    text = subtitle,
-                    fontSize = 12.sp,
-                    color =
-                        Color(0xFF6C757D)
-                )
-            }
+        Icon(imageVector = icon, contentDescription = null, tint = Color(0xFF495057), modifier = Modifier.size(20.dp))
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = title, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1D20))
+            Text(text = subtitle, fontSize = 12.sp, color = Color(0xFF6C757D))
         }
-
-        Icon(
-            imageVector =
-                Icons.Default.ChevronRight,
-            contentDescription =
-                "More",
-            tint =
-                Color(0xFFADB5BD),
-            modifier =
-                Modifier.size(20.dp)
-        )
+        Icon(imageVector = Icons.Default.ChevronRight, contentDescription = null, tint = Color(0xFFADB5BD), modifier = Modifier.size(20.dp))
     }
 }
 
+/**
+ * Settings row with an inline switch for boolean preferences.
+ */
 @Composable
 fun SettingsSwitchItem(
     icon: ImageVector,
@@ -757,93 +390,28 @@ fun SettingsSwitchItem(
     onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-        horizontalArrangement =
-            Arrangement.SpaceBetween,
-        verticalAlignment =
-            Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            verticalAlignment =
-                Alignment.CenterVertically,
-            modifier =
-                Modifier.weight(1f)
-        ) {
-            Box(
-                modifier =
-                    Modifier
-                        .size(38.dp)
-                        .clip(
-                            RoundedCornerShape(
-                                10.dp
-                            )
-                        )
-                        .background(
-                            Color(0xFFF1F3F5)
-                        ),
-                contentAlignment =
-                    Alignment.Center
-            ) {
-                Icon(
-                    imageVector =
-                        icon,
-                    contentDescription =
-                        title,
-                    tint =
-                        Color(0xFF495057),
-                    modifier =
-                        Modifier.size(20.dp)
-                )
-            }
-
-            Spacer(
-                modifier =
-                    Modifier.width(16.dp)
-            )
-
-            Column {
-                Text(
-                    text = title,
-                    fontSize = 15.sp,
-                    fontWeight =
-                        FontWeight.Bold,
-                    color =
-                        Color(0xFF1A1D20)
-                )
-
-                Spacer(
-                    modifier =
-                        Modifier.height(2.dp)
-                )
-
-                Text(
-                    text = subtitle,
-                    fontSize = 12.sp,
-                    color =
-                        Color(0xFF6C757D)
-                )
-            }
+        Icon(imageVector = icon, contentDescription = null, tint = Color(0xFF495057), modifier = Modifier.size(20.dp))
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = title, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1D20))
+            Text(text = subtitle, fontSize = 12.sp, color = Color(0xFF6C757D))
         }
-
         Switch(
-            checked =
-                checked,
-            onCheckedChange =
-                onCheckedChange,
-            colors =
-                SwitchDefaults.colors(
-                    checkedThumbColor =
-                        Color.White,
-                    checkedTrackColor =
-                        Color(0xFFFF6D00),
-                    uncheckedThumbColor =
-                        Color.White,
-                    uncheckedTrackColor =
-                        Color(0xFFE0E0E0)
-                )
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = Color(0xFFFF6D00))
         )
     }
 }
+
+@Composable
+private fun navigationColors() = NavigationBarItemDefaults.colors(
+    selectedIconColor = Color(0xFFFF6D00),
+    selectedTextColor = Color(0xFFFF6D00),
+    unselectedIconColor = Color(0xFF9AA0A6),
+    unselectedTextColor = Color(0xFF9AA0A6),
+    indicatorColor = Color.Transparent
+)

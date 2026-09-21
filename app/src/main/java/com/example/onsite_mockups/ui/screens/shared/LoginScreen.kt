@@ -51,6 +51,10 @@ import com.example.onsite_mockups.ui.viewmodels.AuthViewModel
 import com.example.onsite_mockups.ui.viewmodels.LoginState
 import io.github.jan.supabase.gotrue.auth
 
+/**
+ * The login screen of the application.
+ * Supports email/password login, Google OAuth, and biometric authentication.
+ */
 @Composable
 fun LoginScreen(
     authViewModel: AuthViewModel,
@@ -58,6 +62,7 @@ fun LoginScreen(
     onLoginSuccess: (Profile) -> Unit,
     onForgotPasswordClick: () -> Unit = {}
 ) {
+    // Local UI state for form fields
     var email by remember {
         mutableStateOf("")
     }
@@ -74,6 +79,7 @@ fun LoginScreen(
         mutableStateOf(false)
     }
 
+    // Observe login state from ViewModel
     val loginState by authViewModel.loginState.collectAsState()
 
     val context = LocalContext.current
@@ -81,7 +87,7 @@ fun LoginScreen(
     val activity = context as? FragmentActivity
 
     /*
-     * Handle the Google OAuth callback.
+     * Handle the Google OAuth callback automatically when redirected back to the app.
      */
     LaunchedEffect(isGoogleCallback) {
         if (!isGoogleCallback) {
@@ -102,9 +108,7 @@ fun LoginScreen(
     }
 
     /*
-     * Automatically prompt for biometric authentication when
-     * a valid Supabase session belongs to the account that
-     * enabled biometric login.
+     * Automatically prompt for biometric authentication if enabled.
      */
     LaunchedEffect(
         isGoogleCallback,
@@ -131,6 +135,7 @@ fun LoginScreen(
 
         biometricPromptShown = true
 
+        // Trigger the biometric prompt
         OnSiteBiometricManager.authenticate(
             activity = activity,
             title = "Unlock OnSite",
@@ -141,11 +146,12 @@ fun LoginScreen(
                 }
             },
             onFailure = {
-                // Keep the normal login screen available.
+                // Keep the normal login screen available on failure.
             }
         )
     }
 
+    // UI Layout
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -161,6 +167,7 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            // App Logo
             Box(
                 modifier = Modifier
                     .size(76.dp)
@@ -203,6 +210,7 @@ fun LoginScreen(
                 modifier = Modifier.height(32.dp)
             )
 
+            // Email Input
             OutlinedTextField(
                 value = email,
                 onValueChange = {
@@ -226,6 +234,7 @@ fun LoginScreen(
                 modifier = Modifier.height(14.dp)
             )
 
+            // Password Input with Visibility Toggle
             OutlinedTextField(
                 value = password,
                 onValueChange = {
@@ -288,6 +297,7 @@ fun LoginScreen(
                 modifier = Modifier.height(10.dp)
             )
 
+            // Error Message Display
             if (loginState is LoginState.Error) {
                 Text(
                     text = (loginState as LoginState.Error).message,
@@ -299,6 +309,7 @@ fun LoginScreen(
                 )
             }
 
+            // Sign In Button
             Button(
                 onClick = {
                     authViewModel.login(
@@ -338,6 +349,7 @@ fun LoginScreen(
                 }
             }
 
+            // Manual Biometric Unlock Button
             if (OnSiteBiometricManager.isEnabled(context)) {
                 Spacer(modifier = Modifier.height(12.dp))
                 
@@ -392,6 +404,7 @@ fun LoginScreen(
                 modifier = Modifier.height(16.dp)
             )
 
+            // Google OAuth Entry Point (Mocked as a TextField-style row)
             OutlinedTextField(
                 value = "",
                 onValueChange = {},

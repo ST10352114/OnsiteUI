@@ -49,6 +49,10 @@ import com.example.onsite_mockups.ui.viewmodels.ForemanViewModel
 import io.github.jan.supabase.gotrue.handleDeeplinks
 import androidx.fragment.app.FragmentActivity
 
+/**
+ * The entry point activity for the OnSite application.
+ * Manages the main navigation host, deep linking, and permission requests.
+ */
 class MainActivity : FragmentActivity() {
 
     companion object {
@@ -68,14 +72,18 @@ class MainActivity : FragmentActivity() {
             savedInstanceState
         )
 
+        // Initialize Supabase deep link handling
         SupabaseClient
             .client
             .handleDeeplinks(intent)
 
+        // Enable edge-to-edge UI layout
         enableEdgeToEdge()
 
+        // Prompt for notification permissions on supported versions
         requestNotificationPermission()
 
+        // Check if the activity was launched via a Google login callback
         val isGoogleCallback =
             savedInstanceState == null &&
                     intent?.data?.scheme == "onsite" &&
@@ -88,6 +96,7 @@ class MainActivity : FragmentActivity() {
                 val navController =
                     rememberNavController()
 
+                // Initialize shared ViewModels
                 val authViewModel:
                         AuthViewModel =
                     viewModel()
@@ -109,6 +118,7 @@ class MainActivity : FragmentActivity() {
                         Modifier.fillMaxSize()
                 ) { innerPadding ->
 
+                    // Application-wide Navigation Host
                     NavHost(
                         navController =
                             navController,
@@ -122,6 +132,7 @@ class MainActivity : FragmentActivity() {
                             )
                     ) {
 
+                        // Notifications Screen
                         composable(
                             Screen.Notifications.route
                         ) {
@@ -133,6 +144,7 @@ class MainActivity : FragmentActivity() {
 
                                 onNotificationClick = { notification ->
 
+                                    // Parse data from notification for navigation
                                     val data =
                                         try {
                                             kotlinx.serialization.json.Json
@@ -178,6 +190,7 @@ class MainActivity : FragmentActivity() {
                             )
                         }
 
+                        // Splash Screen
                         composable(
                             Screen.Splash.route
                         ) {
@@ -200,6 +213,7 @@ class MainActivity : FragmentActivity() {
                             )
                         }
 
+                        // Login Screen
                         composable(
                             Screen.Login.route
                         ) {
@@ -213,6 +227,7 @@ class MainActivity : FragmentActivity() {
 
                                 onLoginSuccess = { profile ->
 
+                                    // Route user based on their role
                                     val destination =
                                         if (
                                             profile.role ==
@@ -252,6 +267,7 @@ class MainActivity : FragmentActivity() {
                             )
                         }
 
+                        // Administrator Dashboard
                         composable(
                             Screen.AdminDashboard.route
                         ) {
@@ -302,6 +318,7 @@ class MainActivity : FragmentActivity() {
                             )
                         }
 
+                        // Administrator Sites and Crew Management
                         composable(
                             Screen.SitesAndCrew.route
                         ) {
@@ -341,6 +358,7 @@ class MainActivity : FragmentActivity() {
                             )
                         }
 
+                        // Administrator Settings Screen
                         composable(
                             Screen.AdminSettings.route
                         ) {
@@ -405,6 +423,7 @@ class MainActivity : FragmentActivity() {
                             )
                         }
 
+                        // Administrator Site Update Detail View
                         composable(
                             Screen.AdminUpdateDetail.route
                         ) {
@@ -421,6 +440,7 @@ class MainActivity : FragmentActivity() {
                             )
                         }
 
+                        // Foreman Home Screen
                         composable(
                             Screen.ForemanHome.route
                         ) {
@@ -482,6 +502,7 @@ class MainActivity : FragmentActivity() {
                             )
                         }
 
+                        // Foreman Achievements Screen
                         composable(
                             Screen.Achievements.route
                         ) {
@@ -514,6 +535,7 @@ class MainActivity : FragmentActivity() {
                             )
                         }
 
+                        // Foreman Settings Screen
                         composable(
                             Screen.Settings.route
                         ) {
@@ -578,6 +600,7 @@ class MainActivity : FragmentActivity() {
                             )
                         }
 
+                        // Foreman Daily Update Form
                         composable(
                             Screen.DailyUpdateForm.route
                         ) {
@@ -607,6 +630,7 @@ class MainActivity : FragmentActivity() {
                             )
                         }
 
+                        // Success confirmation after syncing update
                         composable(
                             Screen.UpdateSynced.route
                         ) {
@@ -629,6 +653,7 @@ class MainActivity : FragmentActivity() {
                             )
                         }
 
+                        // Offline mode indication (if connectivity is lost)
                         composable(
                             Screen.UpdateOffline.route
                         ) {
@@ -651,6 +676,7 @@ class MainActivity : FragmentActivity() {
                             )
                         }
 
+                        // Placeholder for future expansion
                         composable(
                             Screen.PlaceholderNext.route
                         ) {
@@ -687,6 +713,9 @@ class MainActivity : FragmentActivity() {
         }
     }
 
+    /**
+     * Requests POST_NOTIFICATIONS permission on Android 13+ (API 33).
+     */
     private fun requestNotificationPermission() {
 
         if (

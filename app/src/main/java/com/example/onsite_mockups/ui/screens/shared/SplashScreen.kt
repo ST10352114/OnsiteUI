@@ -28,11 +28,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
+/**
+ * Initial landing screen with branding and an animated entry into the app.
+ */
 @Composable
 fun SplashScreen(
     onNavigateToNext: () -> Unit
 ) {
-    // 5-second automatic transition as requested by user
+    // Automatic transition to the next screen after a delay
     LaunchedEffect(Unit) {
         delay(5000)
         onNavigateToNext()
@@ -45,7 +48,7 @@ fun SplashScreen(
             .clickable { onNavigateToNext() },
         contentAlignment = Alignment.Center
     ) {
-        // Top warning stripe bar
+        // Decorative top warning stripe bar
         WarningStripeBar(
             modifier = Modifier
                 .fillMaxWidth()
@@ -53,7 +56,7 @@ fun SplashScreen(
                 .align(Alignment.TopCenter)
         )
 
-        // Bottom warning stripe bar
+        // Decorative bottom warning stripe bar
         WarningStripeBar(
             modifier = Modifier
                 .fillMaxWidth()
@@ -100,7 +103,7 @@ fun SplashScreen(
             )
         }
 
-        // Small yellow loading line at bottom left as seen in mockup
+        // Small yellow progress indicator at bottom left
         Box(
             modifier = Modifier
                 .align(Alignment.BottomStart)
@@ -111,6 +114,9 @@ fun SplashScreen(
     }
 }
 
+/**
+ * Draws a bar with diagonal construction-style warning stripes.
+ */
 @Composable
 fun WarningStripeBar(modifier: Modifier = Modifier) {
     Canvas(modifier = modifier) {
@@ -120,7 +126,7 @@ fun WarningStripeBar(modifier: Modifier = Modifier) {
         var currentX = -height
 
         while (currentX < width + height) {
-            // Draw yellow background / black stripe
+            // Alternating yellow and black stripes
             drawRect(
                 color = Color(0xFFFFC107),
                 topLeft = Offset(currentX, 0f),

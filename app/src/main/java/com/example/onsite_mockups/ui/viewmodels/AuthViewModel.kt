@@ -19,12 +19,17 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
+/**
+ * ViewModel responsible for user authentication and session management.
+ * Interfaces with Supabase Auth for login/logout and manages the current user's profile.
+ */
 class AuthViewModel : ViewModel() {
 
     companion object {
         private const val TAG =
             "AuthViewModel"
 
+        // URL handled by the app for Google OAuth callbacks
         const val GOOGLE_REDIRECT_URL =
             "onsite://login-callback"
     }
@@ -32,6 +37,9 @@ class AuthViewModel : ViewModel() {
     private val _currentProfile =
         MutableStateFlow<Profile?>(null)
 
+    /**
+     * The profile of the currently authenticated user.
+     */
     val currentProfile:
             StateFlow<Profile?> =
         _currentProfile.asStateFlow()
@@ -41,6 +49,9 @@ class AuthViewModel : ViewModel() {
             LoginState.Idle
         )
 
+    /**
+     * Observable flow of the current login process state.
+     */
     val loginState:
             StateFlow<LoginState> =
         _loginState.asStateFlow()
@@ -48,6 +59,9 @@ class AuthViewModel : ViewModel() {
     private val auth =
         SupabaseClient.client.auth
 
+    /**
+     * Authenticates a user using email and password.
+     */
     fun login(
         email: String,
         password: String,
@@ -70,6 +84,7 @@ class AuthViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
+                // Sign in with Supabase
                 auth.signInWith(
                     Email
                 ) {
@@ -80,6 +95,7 @@ class AuthViewModel : ViewModel() {
                         password
                 }
 
+                // Load OnSite profile after successful Supabase auth
                 completeAuthenticatedLogin(
                     onSuccess = onSuccess
                 )
@@ -100,6 +116,9 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Starts the Google OAuth sign-in flow.
+     */
     fun loginWithGoogle() {
         _loginState.value =
             LoginState.Loading
@@ -131,6 +150,9 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Attempts to log in using an existing Supabase session and biometric verification.
+     */
     fun loginWithBiometrics(
         onSuccess: (Profile) -> Unit
     ) {
@@ -163,6 +185,7 @@ class AuthViewModel : ViewModel() {
                     return@launch
                 }
 
+                // Configure Retrofit with the existing access token
                 RetrofitClient.setToken(
                     session.accessToken
                 )
@@ -195,6 +218,9 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Completes the login process after a successful Google OAuth redirection.
+     */
     fun completeGoogleLogin(
         onSuccess: (Profile) -> Unit
     ) {
@@ -231,6 +257,7 @@ class AuthViewModel : ViewModel() {
                     session.accessToken
                 )
 
+                // Try to find an existing OnSite profile for this Google user
                 val existingProfile =
                     try {
                         SupabaseClient
@@ -250,6 +277,7 @@ class AuthViewModel : ViewModel() {
                         null
                     }
 
+                // Use existing profile or create a new one via the API
                 val profile =
                     if (existingProfile != null && !existingProfile.fullName.isNullOrBlank()) {
                         existingProfile
@@ -295,6 +323,9 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Finishes the authentication process after Supabase sign-in by loading the user profile.
+     */
     private fun completeAuthenticatedLogin(
         onSuccess: (Profile) -> Unit
     ) {
@@ -335,6 +366,9 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Fetches the OnSite profile for the currently authenticated Supabase user.
+     */
     private suspend fun loadProfileForCurrentUser(): Profile? {
 
         val user =
@@ -358,13 +392,9 @@ class AuthViewModel : ViewModel() {
             "Loading profile for Supabase user: ${user.id}"
         )
 
-        Log.d(
-            TAG,
-            "Supabase session exists: true"
-        )
-
         return try {
 
+            // Query the 'profiles' table directly via Postgrest
             val profiles =
                 SupabaseClient
                     .client
@@ -410,6 +440,9 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Finalizes the login process: checks if user is active, sets repository data, and starts FCM registration.
+     */
     private fun finishLogin(
         profile: Profile,
         onSuccess: (Profile) -> Unit
@@ -435,6 +468,7 @@ class AuthViewModel : ViewModel() {
             return
         }
 
+        // Set the token for subsequent API calls
         RetrofitClient.setToken(
             session.accessToken
         )
@@ -447,6 +481,7 @@ class AuthViewModel : ViewModel() {
                 profile
             )
 
+        // Asynchronously register for push notifications
         registerFcmToken()
 
         _loginState.value =
@@ -457,6 +492,9 @@ class AuthViewModel : ViewModel() {
         onSuccess(profile)
     }
 
+    /**
+     * Fetches the FCM token and registers it with the backend.
+     */
     private fun registerFcmToken() {
         viewModelScope.launch {
             try {
@@ -490,11 +528,15 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    /**
+     * Logs the user out from Supabase and the local repository.
+     */
     fun logout(
         onLoggedOut: () -> Unit
     ) {
         viewModelScope.launch {
             try {
+                // Try to deactivate the device token before signing out
                 val token =
                     try {
                         FirebaseMessaging
